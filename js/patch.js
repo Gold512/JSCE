@@ -1,5 +1,5 @@
 class Speeder {
-    constructor() {
+    constructor(win) {
         this.original = {
             timeout:setTimeout,
             interval:setInterval,
@@ -15,16 +15,14 @@ class Speeder {
         let ctx = (function* g() {
             while(true) {
                 let speed = yield null;
-                
 
-                window.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
-                window.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
-                window.requestAnimationFrame = function(callback) {
+                win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
+                win.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
+                win.requestAnimationFrame = function(callback) {
                     return animationFrame(t => {
                         let elapsedTime = (t - start);
-                        start = t - elapsedTime + elapsedTime*speed
+                        start += elapsedTime*speed
                         callback(start); 
-
                     })
                 }
             }
@@ -41,9 +39,9 @@ class Speeder {
     }
 
     disable() {
-        window.setTimeout = this.original.timeout;
-        window.setInterval = this.original.interval;
-        window.requestAnimationFrame = this.original.animationFrame;
+        win.setTimeout = this.original.timeout;
+        win.setInterval = this.original.interval;
+        win.requestAnimationFrame = this.original.animationFrame;
     }
 
     setSpeed(speed) {
@@ -52,29 +50,59 @@ class Speeder {
     }
 }
 
-let RNG = {
-    original: Math.random,
-    set(v) {
-        switch (Object.prototype.toString.call(v)) {
-            case '[object GeneratorFunction]':
-                let ctx = v();
-                Math.random = function() { return ctx.next() }
-                break;
-            case '[object Array]':
-                let index = -1;
-                Math.random = function() { 
-                    index++;
-                    if(v[index] === undefined) index = 0;
-                    return v[index];
-                }
+class RNG {
+    constructor(win) {
+        let original = Math.random;
+        this.original = Math.random;
+        this.Math = win.Math;
+        let callstackOverrides = true;
+        this.overrides = {};
+        let overrides = this.overrides;
 
-                break;
-            default:
-                Math.random = function() { return v }
-                break;
+        
+        this.set = function(v, callback = function() {}) {
+            switch (Object.prototype.toString.call(v)) {
+                // case '[object GeneratorFunction]':
+                    // let ctx = v();
+                    // this.Math.random = function() { return ctx.next() }
+                    // break;
+                case '[object Array]':
+                    let index = -1;
+                    this.Math.random = function() { 
+                        let stack = getCallstack();
+                        
+                        if(callstackOverrides && overrides[stack]) { 
+                            let val = overrides[stack]; 
+                            callback(stack, val);
+                            return val;
+                        }
+
+                        index++;
+                        if(v[index] === undefined) index = 0;
+                        let val = v[index] === '*' ? original() : v[index];
+                        callback(stack, val);
+                        return val;
+                    }
+
+                    break;
+                default:
+                    this.Math.random = function() {
+                        if(callstackOverrides && overrides[stack]) { 
+                            let val = overrides[stack]; 
+                            callback(stack, val);
+                            return val;
+                        }
+
+                        let val = v === '*' ? original() : v;
+                        callback(getCallstack(), val)
+                        return  
+                    }
+                    break;
+            }
         }
-    },
+    }
+    
     reset() {
-        Math.random = this.original;
+        this.Math.random = this.original;
     }
 }

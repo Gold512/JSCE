@@ -1,0 +1,26 @@
+.foldable button {
+    background: none;
+    color: rgb(185, 185, 185);
+    margin-top: .5em;
+    cursor: pointer;
+    border-bottom: var(--outline) 1px solid;
+    width: 100%;
+    justify-content: left;
+    text-align: left;
+}
+.foldable button::before {
+    content: "▾"
+}
+.foldable button.show::before {
+    content: "▴"
+}
+.foldable button ~ div {
+    display: none;
+}
+.foldable button.show ~ div {
+    display: block;
+    border-left: var(--outline) 1px solid;
+    border-right: var(--outline) 1px solid;
+    border-bottom: var(--outline) 1px solid;
+    padding: 3px 5px;
+}

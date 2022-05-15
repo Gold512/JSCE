@@ -1,3 +1,14 @@
+/**
+ * 
+ * @param {Number} n layers of callstack to remove (defaults to only removing until the getCallstack functino)
+ * @returns {String} callstack 
+ */
+function getCallstack(n = 0) {
+    try { throw new Error('') } catch (e) {
+        return e.stack.split('\n').slice(2+n).join('\n');
+    }
+}
+
 class IndexedObj {
     constructor(obj) {
         this.obj = obj;
@@ -45,6 +56,14 @@ class IndexedObj {
             
             enumerable: true,
             configurable: true
+        }
+
+        if(typeof observers == 'string') {
+            if(observers == '*') {
+                observers = ['read', 'write'];
+            } else {
+                observers = [observers];
+            }
         }
 
         if(observers.includes('read')) {

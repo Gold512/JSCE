@@ -1,0 +1,65 @@
+
+
+/* The switch - the box around the slider */
+#jsce-container .switch {
+    position: relative;
+    display: inline-block;
+    width: 2em;
+    height: 1em;
+}
+
+/* Hide default HTML checkbox */
+#jsce-container .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+#jsce-container .switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+#jsce-container .switch-slider:before {
+    position: absolute;
+    content: "";
+    height: .9em;
+    width: .9em;
+    left: .1em;
+    bottom: .05em;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+#jsce-container input:checked + .switch-slider {
+    background-color: #2196F3;
+}
+
+#jsce-container input:focus + .switch-slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+#jsce-container input:checked + .switch-slider:before {
+    -webkit-transform: translateX(.9em);
+    -ms-transform: translateX(.9em);
+    transform: translateX(.9em);
+}
+
+/* Rounded sliders */
+#jsce-container .switch-slider.round {
+    border-radius: 1em;
+}
+
+#jsce-container .switch-slider.round:before {
+    border-radius: 50%;
+}
+
