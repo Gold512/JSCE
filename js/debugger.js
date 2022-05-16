@@ -10,14 +10,15 @@ function getCallstack(n = 0) {
 }
 
 class IndexedObj {
-    constructor(obj) {
+    constructor(obj, path) {
         this.obj = obj;
-
-        this.update = () => {};
+        this.search = [];
+        this.update = () => { return this.obj; };
+        this.path = path;
     }
 
     set(path, value) {
-        this.obj = update('read');
+        this.obj = this.update('read');
         path = path.split('.');
         let variable = this.obj;
         for(let i = 0; i < path.length-1; i++) {
@@ -25,23 +26,24 @@ class IndexedObj {
             variable = variable[path[i]];
         }
         variable[path[path.length-1]] = value;
-        update('write');
+        this.update('write');
         return true;
     }
     
     get(path) {
-        this.obj = update('read');
+        this.obj = this.update('read');
         path = path.split('.'); 
         let variable = this.obj;
         for(let i = 0; i < path.length; i++) {
             variable = variable[path[i]];
+            if(variable === undefined) return undefined;
         }
         return variable;
     }
     
     /**
      * Attach observer to an object, overwriting any previous observers 
-     * Note: not compatible with update function currently
+     * Note: not compatible with this.update function currently
      * @param {String[]} observers list of observers to add ('read', 'write')
      * @param {String} path 
      * @param {Function} callback 
@@ -115,20 +117,22 @@ class IndexedObj {
         Object.defineProperty(o.parent, o.name, object)
     }
 
-    newSearch(value) {
-        this.obj = update('read');
-        this.search = this._searchData(this.obj, value);
+    newSearch(search) {
+        this.obj = this.update('read');
+        this.search = this._searchData(this.obj, this._parseSearch(search), this.path);
     }
 
-    refine(value) {
-        this.obj = update('read');
+    refine(search) {
+        let {value, type, operation} = this._parseSearch(search);
+        this.obj = this.update('read');
         if(!this.search) throw new Error('no search to refine');
-        let res = [];
+        let res = [];        
 
         for(let i = 0; i < this.search.length; i++) {
             let v = this.get(this.search[i][0])
-            if(v === value) {
-                this.search[i][1] = v;
+            if(v === undefined) continue;
+            if(operation(v, value) && type[typeof v]) {
+                this.search[i][1] = v; // ensure that the result list is accurate
                 res.push(this.search[i]);
             } 
         }
@@ -144,9 +148,9 @@ class IndexedObj {
     }
 
     /**
-     * set update function for things that do not update automatically like storage
-     * @param {Function} read function to call when db is read, should return the updated object 
-     * @param {Function} write function to call when db is written to, should return the updated object 
+     * set this.update function for things that do not this.update automatically like storage
+     * @param {Function} read function to call when db is read, should return the this.updated object 
+     * @param {Function} write function to call when db is written to, should return the this.updated object 
      */
     onUpdate(read, write) {
         this.update = op => {
@@ -165,14 +169,57 @@ class IndexedObj {
         }
     }
 
-    _searchData(variable, value, path = '') {
+    _parseSearch(search) {
+        let value = Number(search.value)
+        let fn;
+        switch(search.operation) {
+            case '===':
+                fn = (a, b) => a === b;
+            break;
+
+            case '==':
+                fn = (a, b) => a == b;
+            break;
+
+            case '>=':
+                fn = (a, b) => a >= b;
+            break;
+
+            case '>':
+                fn = (a, b) => a > b;
+            break;
+
+            case '<=':
+                fn = (a, b) => a <= b;
+            break;
+
+            case '<':
+                fn = (a, b) => a < b;
+            break;
+
+            case 'includes':
+                value = new String(value);
+                fn = (a, b) => String(a).includes(b);
+            break;
+
+            case 'match':
+                value = new RegExp(value);
+                fn = (a, b) => String(a).match(b);
+            break;
+        }
+
+        return {value: value, operation: fn, type: search.type};
+    }
+
+    _searchData(variable, search, path = '') {
+        let {value, type, operation} = search;
         let k = Object.keys(variable), res = [];
         for(let i = 0; i < k.length; i++) {
             let v = variable[k[i]];
-            if(v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
+            if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
             if(typeof v === 'object') {
-                res.push(...this._searchData(v, value, (path !== '' ? '.' : '') + k[i]));
-            } else if(v == value) {
+                res.push(...this._searchData(v, search, (path !== '' ? '.' : '') + k[i]));
+            } else if(operation(v, value) && type[typeof v]) {
                 res.push([path + (path !== '' ? '.' : '') + k[i], v]);
             }
         }

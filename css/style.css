@@ -134,15 +134,15 @@
     background: var(--background-hover);
     cursor: pointer;
 }
-#random-callstack-disp::-webkit-scrollbar {
+.dark-scrollbar::-webkit-scrollbar {
     width: .8em;
 }
  
-#random-callstack-disp::-webkit-scrollbar-track {
+.dark-scrollbar::-webkit-scrollbar-track {
     background:rgb(20, 20, 20);
 }
  
-#random-callstack-disp::-webkit-scrollbar-thumb {
+.dark-scrollbar::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.151);
     /* border-radius: .4em; */
     margin: 3px 0;
@@ -154,7 +154,7 @@
 }
 
 .main {
-    min-height: 50vh;
+    min-height: 80vh;
     overflow: auto;
 }
 
@@ -168,4 +168,40 @@
 
 #type-select > input {
     cursor: pointer;
+}
+
+#search-res {
+    overflow-y: auto;
+    max-height: 75vh;
+}
+
+#search-res > div:hover {
+    background: rgb(24, 24, 24);
+}
+
+.search-box:not(:last-child) {
+    border-bottom: 1px solid var(--outline);
+    
+}
+
+.search-box {
+    padding-left: .4em;
+    padding-right: .4em;
+    display: block;
+    border-top: 5px solid transparent;
+    padding-bottom: 5px;
+}
+
+.search-box div:nth-child(1) {
+    text-align: left;
+    display: inline-block;
+	left: 3px;
+}
+
+.search-box div:nth-child(2) {
+    /* text-align: left; */
+    float: right;
+    margin: 0;
+    padding: 0;
+    /* min-width: 10%; */
 }

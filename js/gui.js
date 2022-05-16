@@ -68,6 +68,7 @@ window.onload = function() {
     })
 
     function keydown(e) {
+        if(window.parent == window) return;
         if(e.getModifierState("Alt") && e.getModifierState("Control") && e.getModifierState("Shift")) {
             if(e.code === 'KeyC') {
                 parent.jsce_toggle()

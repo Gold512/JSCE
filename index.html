@@ -68,7 +68,7 @@
                         <button onclick="this.classList.toggle('show')">call history</button>
                         <div id="random-callstack-controls">
                             <button onclick="clear_rnd_calls(this)">Clear</button>
-                            <div id="random-callstack-disp">
+                            <div id="random-callstack-disp" class="dark-scrollbar">
                                 -- start --
                             </div>
                         </div>
@@ -84,9 +84,9 @@
 
             <div id="search-page" class="page">
                 <div class="box">
-                    <input id="search-box">
+                    <input id="search-value" style="width: 40%">
 
-                    <div class="dropdown" data-value="global">
+                    <div class="dropdown" data-value="global" id="search-location">
                         <button onclick="open_dropdown(this)" class="dropbtn">global</button>
                         <div class="dropdown-content">
                             <button onclick="radio_set(this)" data-value="global">global</a>
@@ -95,7 +95,7 @@
                         </div>
                     </div>
 
-                    <div class="dropdown" data-value="auto">
+                    <div class="dropdown" data-value="auto" id="search-operation">
                         <button onclick="open_dropdown(this)" class="dropbtn">operation</button>
                         <div class="dropdown-content">
                             <button onclick="radio_set(this)" data-value="auto">Auto (default)</a>
@@ -125,21 +125,20 @@
                     <div class="foldable" id="type-select-cont">
                         <button onclick="this.classList.toggle('show')">type</button>
                         <div id="type-select">
-                            <input type="checkbox"> All
+                            <input id='all-types' type="checkbox" checked> All
                             <br>
 
-                            <input type="checkbox"> Boolean
-                            <input type="checkbox"> Number
-                            <input type="checkbox"> String
-                            <input type="checkbox"> Function
-                            <input type="checkbox"> Object
+                            <input disabled class='type-option' data-value="boolean" type="checkbox"> Boolean
+                            <input disabled class='type-option' data-value="number" type="checkbox"> Number
+                            <input disabled class='type-option' data-value="string" type="checkbox"> String
+                            <input disabled class='type-option' data-value="function" type="checkbox"> Function
                         </div>
                     </div>
-                    <button>New Search</button>
-                    <button>Refine</button>
+                    <button onclick="newSearch()">New Search</button>
+                    <button onclick="refine()">Refine</button>
                 </div>
 
-                <div class="box">
+                <div class="box dark-scrollbar" id="search-res">
                     <div style="text-align: center;margin: 0 5px;">No search results yet, press new search to start a new search</div>
                 </div>
             </div>
