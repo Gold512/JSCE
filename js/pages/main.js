@@ -29,6 +29,7 @@ function mainPageInit() {
             let stack = e.currentTarget.dataset.stack;
 
             let inp = prompt(`value (current: ${rng.overrides[stack]})`);
+            if(inp === null) return;
             if(Number(inp) === NaN) {
                 alert('Invalid input');
                 return;
@@ -46,6 +47,8 @@ function mainPageInit() {
                 div.addEventListener('click', function(e) {
                     let stack = e.currentTarget.dataset.stack;
                     let inp = prompt(`value (current: ${rng.overrides[stack]})`);
+                    if(inp === null) return;
+                    
                     rng.overrides[stack] = inp;
                     e.currentTarget.querySelector('span').innerText = inp;
                 });

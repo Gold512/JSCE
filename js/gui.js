@@ -94,3 +94,13 @@ function open_dropdown(e) {
     currentFocused = e;
     e.classList.toggle("show");
 }
+
+function radio_set(e) {
+    let p = e.parentElement.parentElement;
+    p.dataset.value = e.dataset.value;
+    p.querySelector('button').innerText = e.innerText;
+}
+
+function clear_rnd_calls(e) {
+    e.parentElement.children[1].innerHTML = '-- start --';
+}

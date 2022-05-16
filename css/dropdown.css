@@ -2,10 +2,9 @@
 .dropbtn {
     background-color: #3f3f3f;
     color: white;
-    font-size: 16px;
     border: none;
     cursor: pointer;
-    height: 1.3em;
+    height: 1.5em;
     border: rgb(83, 83, 83) 1px solid;
 }
 .dropbtn::after{
@@ -36,7 +35,7 @@
 }
 
 /* Links inside the dropdown */
-.dropdown-content button {
+.dropdown-content > button {
     color: rgb(255, 255, 255);
 	padding: 9px 12px;
 	text-decoration: none;
@@ -46,14 +45,15 @@
     width: 100%;
     background-color: inherit;
     border: none;
+    text-align: left;
 }
 
-.dropdown-content button:not(:last-child) {
+.dropdown-content > button:not(:last-child) {
     margin-bottom: 3px;
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content button:hover {background-color: #525252}
+.dropdown-content > button:hover {background-color: #525252}
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .dropdown .show ~ .dropdown-content {display:block;}

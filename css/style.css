@@ -10,7 +10,7 @@
 
     --outline: rgb(83, 83, 83);
     --background: rgb(37, 37, 37);
-    --background-hover: rgb(44, 44, 44);
+    --background-hover: rgb(56, 56, 56);
 }
 
 .page {
@@ -151,4 +151,21 @@
 .override-value {
     padding: 3px 0;
     background: var(--background);
+}
+
+.main {
+    min-height: 50vh;
+    overflow: auto;
+}
+
+#type-select-cont {
+    margin-bottom: 5px; 
+}
+
+#type-select {
+    cursor: default;
+}
+
+#type-select > input {
+    cursor: pointer;
 }
