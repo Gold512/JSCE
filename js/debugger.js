@@ -18,7 +18,7 @@ class IndexedObj {
     }
 
     set(path, value) {
-        this.obj = this.update('read');
+        this.update('read');
         path = path.split('.');
         let variable = this.obj;
         for(let i = 0; i < path.length-1; i++) {
@@ -31,7 +31,7 @@ class IndexedObj {
     }
     
     get(path) {
-        this.obj = this.update('read');
+        this.update('read');
         path = path.split('.'); 
         let variable = this.obj;
         for(let i = 0; i < path.length; i++) {
@@ -118,13 +118,13 @@ class IndexedObj {
     }
 
     newSearch(search) {
-        this.obj = this.update('read');
-        this.search = this._searchData(this.obj, this._parseSearch(search), this.path);
+        this.update('read');
+        this.search = this._searchData(this.obj, this._parseSearch(search));
     }
 
     refine(search) {
         let {value, type, operation} = this._parseSearch(search);
-        this.obj = this.update('read');
+        this.update('read');
         if(!this.search) throw new Error('no search to refine');
         let res = [];        
 
@@ -153,7 +153,7 @@ class IndexedObj {
      * @param {Function} write function to call when db is written to, should return the this.updated object 
      */
     onUpdate(read, write) {
-        this.update = op => {
+        this.update = (op) => {
             switch (op) {
                 case 'read':
                     this.obj = read();
@@ -218,7 +218,7 @@ class IndexedObj {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
             if(typeof v === 'object') {
-                res.push(...this._searchData(v, search, (path !== '' ? '.' : '') + k[i]));
+                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i]));
             } else if(operation(v, value) && type[typeof v]) {
                 res.push([path + (path !== '' ? '.' : '') + k[i], v]);
             }

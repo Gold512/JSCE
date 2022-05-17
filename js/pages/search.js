@@ -23,8 +23,12 @@ function parseStorage(o) {
     let res = {};
 
     for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-        const e = o[k[i]];
-        res[k[i]] = JSON.parse(e);
+        const element = o[k[i]];
+        try {
+            res[k[i]] = JSON.parse(element);
+        } catch(e) {
+            res[k[i]] = element;
+        }
     } 
     return res;
 }
@@ -32,7 +36,7 @@ function parseStorage(o) {
 function displaySearchRes(s) {
     let output = document.getElementById('search-res');
     output.innerHTML = '';
-    if(s.length > 120) {
+    if(s.length > 120 || s.length === 0) {
         let div = document.createElement('div');
         div.style.textAlign = 'center';
         div.style.margin = '0 5px';
@@ -48,9 +52,9 @@ function displaySearchRes(s) {
         div.addEventListener('click', function(e) {
 
             let v = prompt('value (use bool keyword for bool example "bool true")')
-            if(!v) return;
+            if(v === null) return;
             v = v.trim();
-            if(Number(v) !== NaN) v = Number(v);
+            if(Number(v) != NaN) v = Number(v);
             if(v === 'bool true') v = true;
             if(v === 'bool false') v = false;
             try {
@@ -77,28 +81,60 @@ function displaySearchRes(s) {
 let objectIndex;
 
 function newSearch() {
-    let location = document.getElementById('search-location').dataset.value;
-    let value = document.getElementById('search-value').value;
-    let operation = document.getElementById('search-operation').dataset.value;
-    let type = getTypes();
-    let root, path;
-    switch(location) {  
-        case 'global':
-            root = parent;
-            path = 'window';
-        break;
-        case 'localStorage':
-            root = parseStorage(localStorage);
-            path = 'localStorage';
-        break;
-        case 'sessionStorage':
-            root = parseStorage(sessionStorage);
-            path = 'sessionStorage';
-        break;
+    try {
+        let location = document.getElementById('search-location').dataset.value;
+        let value = document.getElementById('search-value').value;
+        let operation = document.getElementById('search-operation').dataset.value;
+        let type = getTypes();
+        let root, path, read, write;
+        if(location === objectIndex?.location) {
+            switch(location) {  
+                case 'global':
+                    root = window.parent;
+                    path = 'window';
+                break;
+                case 'localStorage':
+                    root = parseStorage(window.parent.localStorage);
+                    read = function() {
+                        return parseStorage(window.parent.localStorage);
+                    }
+                    write = function(o) {
+                        for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                            window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                        }
+                    }
+                break;
+                case 'sessionStorage':
+                    root = parseStorage(window.parent.sessionStorage);
+                    read = function() {
+                        return parseStorage(window.parent.sessionStorage);
+                    }
+                    write = function(o) {
+                        for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                            window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                        }
+                    }
+                break;
+            }
+            objectIndex = new IndexedObj(root);
+            objectIndex.location = location;
+            if(location === 'sessionStorage' || location === 'localStorage') {
+                objectIndex.onUpdate(read, write)
+            }
+        }
+        objectIndex.newSearch({value: value, operation: operation, type: type});
+        displaySearchRes(objectIndex.search);
+    } catch(err) {
+        let output = document.getElementById('search-res');
+        output.innerHTML = '';
+
+        let div = document.createElement('div');
+        div.style.textAlign = 'center';
+        div.style.margin = '0 5px';
+        div.innerText = err;
+        output.appendChild(div);
+        return;
     }
-    objectIndex = new IndexedObj(root)
-    objectIndex.newSearch({value: value, operation: operation, type: type});
-    displaySearchRes(objectIndex.search);
 }
 
 function refine() {
