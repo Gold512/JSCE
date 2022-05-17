@@ -87,41 +87,41 @@ function newSearch() {
         let operation = document.getElementById('search-operation').dataset.value;
         let type = getTypes();
         let root, path, read, write;
-        if(location === objectIndex?.location) {
-            switch(location) {  
-                case 'global':
-                    root = window.parent;
-                    path = 'window';
-                break;
-                case 'localStorage':
-                    root = parseStorage(window.parent.localStorage);
-                    read = function() {
-                        return parseStorage(window.parent.localStorage);
+        switch(location) {  
+            case 'global':
+                root = window.parent;
+                path = 'window';
+            break;
+            case 'localStorage':
+                root = parseStorage(window.parent.localStorage);
+                read = function() {
+                    return parseStorage(window.parent.localStorage);
+                }
+                write = function(o) {
+                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                        window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
                     }
-                    write = function(o) {
-                        for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                            window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                        }
+                }
+            break;
+            case 'sessionStorage':
+                root = parseStorage(window.parent.sessionStorage);
+                read = function() {
+                    return parseStorage(window.parent.sessionStorage);
+                }
+                write = function(o) {
+                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                        window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
                     }
-                break;
-                case 'sessionStorage':
-                    root = parseStorage(window.parent.sessionStorage);
-                    read = function() {
-                        return parseStorage(window.parent.sessionStorage);
-                    }
-                    write = function(o) {
-                        for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                            window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                        }
-                    }
-                break;
-            }
-            objectIndex = new IndexedObj(root);
-            objectIndex.location = location;
-            if(location === 'sessionStorage' || location === 'localStorage') {
-                objectIndex.onUpdate(read, write)
-            }
+                }
+            break;
         }
+
+        objectIndex = new IndexedObj(root);
+        objectIndex.location = location;
+        if(location === 'sessionStorage' || location === 'localStorage') {
+            objectIndex.onUpdate(read, write)
+        }
+        
         objectIndex.newSearch({value: value, operation: operation, type: type});
         displaySearchRes(objectIndex.search);
     } catch(err) {
