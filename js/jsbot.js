@@ -75,32 +75,34 @@ class JSBot {
             reject = _reject;
         });
 
+        let onclick = e => {
+            style.remove();
+            this.target = e.target;
+            this.document.removeEventListener('click', onclick)
+            this.document.removeEventListener('mouseover', mouseover)
+            this.document.removeEventListener('mouseout', mouseout)
+            resolve(e.target);
+        }
+
+        let mouseover = e => {
+            e.stopPropagation();
+
+            let prevHover = this.document.querySelector(".jsce-hover")
+            if(prevHover) prevHover.classList.remove("jsce-hover");     
+            e.target.classList.add("jsce-hover");
+        }
+
+        let mouseout = e => {
+            e.target.classList.remove("jsce-hover");
+        }
+        
         try {
             let style = this.document.createElement('style');
             style.innerHTML = '.jsce-hover { background-color: rgba(255, 0, 0, 0.32) !important; cursor: pointer !important; }';
             style.id = 'jsce-element-selector';
             this.document.body.appendChild(style);
 
-            let onclick = e => {
-                style.remove();
-                this.target = e.target;
-                this.document.removeEventListener('click', onclick)
-                this.document.removeEventListener('mouseover', mouseover)
-                this.document.removeEventListener('mouseout', mouseout)
-                resolve(e.target);
-            }
-
-            let mouseover = e => {
-                e.stopPropagation();
-
-                let prevHover = this.document.querySelector(".jsce-hover")
-                if(prevHover) prevHover.classList.remove("jsce-hover");     
-                e.target.classList.add("jsce-hover");
-            }
-
-            let mouseout = e => {
-                e.target.classList.remove("jsce-hover");
-            }
+            
 
             this.document.addEventListener('click', onclick)
 
@@ -109,6 +111,9 @@ class JSBot {
             el.addEventListener('mouseover', mouseover)
             el.addEventListener('mouseout', mouseout);
         } catch(e) {
+            this.document.removeEventListener('click', onclick)
+            this.document.removeEventListener('mouseover', mouseover)
+            this.document.removeEventListener('mouseout', mouseout)
             reject(e);
         }
 
