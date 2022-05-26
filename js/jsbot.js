@@ -53,10 +53,6 @@ class JSBot {
                         get: () => this.target
                     })
 
-                    console.log(event.target);
-
-                    if(i == 0 ) console.log(event)
-                    
                     this.target.dispatchEvent(event);
                 }
             }, interval)
@@ -95,7 +91,7 @@ class JSBot {
         let mouseout = e => {
             e.target.classList.remove("jsce-hover");
         }
-        
+
         try {
             let style = this.document.createElement('style');
             style.innerHTML = '.jsce-hover { background-color: rgba(255, 0, 0, 0.32) !important; cursor: pointer !important; }';
