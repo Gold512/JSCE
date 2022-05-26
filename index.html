@@ -22,7 +22,7 @@
         <script src="./js/pages/search.js"></script>
         <script src="./js/gui.js"></script>
 
-        <div class="main">
+        <div class="main dark-scrollbar">
             <div class="segmented-control" id="page">
                 <input type="radio" name="sc-1-1" id="sc-1-1-1" checked>
                 <input type="radio" name="sc-1-1" id="sc-1-1-2">
@@ -85,31 +85,53 @@
             <div id="search-page" class="page" style="display:none">
                 <div class="box">
                     <input id="search-value" style="width: 40%" autocomplete="off">
-
-                    <div class="dropdown" data-value="global" id="search-location">
-                        <button onclick="open_dropdown(this)" class="dropbtn">global</button>
-                        <div class="dropdown-content">
-                            <button onclick="radio_set(this)" data-value="global">global</a>
-                            <button onclick="radio_set(this)" data-value="localStorage">localStorage</a>
-                            <button onclick="radio_set(this)" data-value="sessionStorage">sessionStorage</a>
+                    <span id="search-value-2-cont" style="display:none">
+                        &nbsp;<span id="search-op-disp"></span>&nbsp;
+                        <input type='number' id="search-value-2" style="width: 80%" autocomplete="off">
+                    </span>
+                    <div class="field">
+                        Location
+                        <div class="dropdown" data-value="global" id="search-location">
+                            <button onclick="open_dropdown(this)" class="dropbtn">global</button>
+                            <div class="dropdown-content">
+                                <button onclick="radio_set(this)" data-value="global">global</a>
+                                <button onclick="radio_set(this)" data-value="localStorage">localStorage</a>
+                                <button onclick="radio_set(this)" data-value="sessionStorage">sessionStorage</a>
+                            </div>
                         </div>
                     </div>
+                    <div class="field">
+                    Operation
+                        <div class="dropdown" data-value="auto" id="search-operation">
+                            <button onclick="open_dropdown(this)" class="dropbtn" id="search-op-btn">Auto (none)</button>
+                            <div class="dropdown-content" onclick="change_search_op(event)">
+                                <button onclick="radio_set(this)" data-value="auto">Auto (none)</button>
+                                <div></div>
 
-                    <div class="dropdown" data-value="auto" id="search-operation">
-                        <button onclick="open_dropdown(this)" class="dropbtn">operation</button>
-                        <div class="dropdown-content">
-                            <button onclick="radio_set(this)" data-value="auto">Auto (default)</a>
-                            <button onclick="radio_set(this)" data-value="===">strict equals (===)</a>
-                            <button onclick="radio_set(this)" data-value="==">equals (==)</a>
-                            <button onclick="radio_set(this)" data-value=">=">greater or equal (>=)</a>
-                            <button onclick="radio_set(this)" data-value="localStorage">greater (>)</a>
-                            <button onclick="radio_set(this)" data-value="&lt;=">less or equal (&lt;=)</a>
-                            <button onclick="radio_set(this)" data-value="&lt;">less (&lt;)</a>
-                            <button onclick="radio_set(this)" data-value="includes">includes string</a>
-                            <button onclick="radio_set(this)" data-value="match">match regex</a>
+                                <button onclick="radio_set(this)" data-value="===">strict equals (===)</button>
+                                <button onclick="radio_set(this)" data-value="==" class="divider">equals (==)</button>
+                                <div></div>
+
+                                <button onclick="radio_set(this)" data-value="~" class="divider">range (~)</button>
+                                <!-- <button onclick="radio_set(this)" data-value="==" class="divider">approximatly (~~)</button> -->
+                                <button onclick="radio_set(this)" data-value="+-" class="divider">within variation (+-)</button>
+                                <div></div>
+                                
+                                <button onclick="radio_set(this)" data-value=">=">greater or equal (>=)</button>
+                                <button onclick="radio_set(this)" data-value=">">greater (>)</button>
+
+                                <div></div>
+                                <button onclick="radio_set(this)" data-value="&lt;=">less or equal (&lt;=)</button>
+                                <button onclick="radio_set(this)" data-value="&lt;">less (&lt;)</button>
+
+                                <div></div>
+                                <button onclick="radio_set(this)" data-value="?">includes string (?)</button>
+                                <button onclick="radio_set(this)" data-value="/">match regex (/)</button>
+                            </div>
                         </div>
-                    </div>
 
+                        <!-- <input type="checkbox" id="search-auto-live"> live reload -->
+                    </div>
                     <div class="foldable">
                         <button onclick="this.classList.toggle('show')">info</button>
                         <div>

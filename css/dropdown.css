@@ -6,9 +6,11 @@
     cursor: pointer;
     height: 1.5em;
     border: rgb(83, 83, 83) 1px solid;
+    padding-left: 0.5em;
 }
 .dropbtn::after{
-    content:"▾"
+    content:"▾";
+    padding-left: 0.3em;
 }
 
 /* Dropdown button on hover & focus */
@@ -47,6 +49,16 @@
     background-color: inherit;
     border: none;
     text-align: left;
+}
+
+.dropdown-content > div {
+    height: 1px;
+    margin-left: 2%;
+    margin-bottom: 3px;
+    width: 98%;
+    display: block;
+    content: "";
+    background: var(--outline);
 }
 
 .dropdown-content > button:not(:last-child) {

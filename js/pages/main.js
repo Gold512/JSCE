@@ -30,7 +30,7 @@ function mainPageInit() {
 
             let inp = prompt(`value (current: ${rng.overrides[stack]})`);
             if(inp === null) return;
-            if(Number(inp) === NaN) {
+            if(isNaN(Number(inp))) {
                 alert('Invalid input');
                 return;
             }

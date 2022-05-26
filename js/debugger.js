@@ -170,8 +170,13 @@ class IndexedObj {
     }
 
     _parseSearch(search) {
-        let value = Number(search.value)
+        let value = search.value;
+        if(isNaN(Number(value))) value = Number(value);
+
         let fn;
+
+        // a is the actual value
+        // b is the input value
         switch(search.operation) {
             case '===':
                 fn = (a, b) => a === b;
@@ -180,6 +185,18 @@ class IndexedObj {
             case '==':
                 fn = (a, b) => a == b;
             break;
+
+            case '+-':
+                fn = (a, b) => Math.abs(a - b[0]) < b[1];
+            break;
+
+            case '~~':
+            break;
+
+            case '~':
+                fn = (a, b) => b[0] <= a && a <= b[1];
+            break;
+
 
             case '>=':
                 fn = (a, b) => a >= b;
@@ -197,12 +214,12 @@ class IndexedObj {
                 fn = (a, b) => a < b;
             break;
 
-            case 'includes':
+            case '?':
                 value = new String(value);
                 fn = (a, b) => String(a).includes(b);
             break;
 
-            case 'match':
+            case '/':
                 value = new RegExp(value);
                 fn = (a, b) => String(a).match(b);
             break;
@@ -211,15 +228,16 @@ class IndexedObj {
         return {value: value, operation: fn, type: search.type};
     }
 
-    _searchData(variable, search, path = '') {
+    _searchData(variable, search, path = '', depth=0) {
+        if(depth == 100) return [];
         let {value, type, operation} = search;
         let k = Object.keys(variable), res = [];
         for(let i = 0; i < k.length; i++) {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
             if(typeof v === 'object') {
-                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i]));
-            } else if(operation(v, value) && type[typeof v]) {
+                res.concat(this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i], depth+1));
+            } else if(type[typeof v] && operation(v, value)) {
                 res.push([path + (path !== '' ? '.' : '') + k[i], v]);
             }
         }
