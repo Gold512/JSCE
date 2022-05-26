@@ -1,6 +1,8 @@
 class JSBot {
     constructor(documentRef, key, interval) {
         this.document = documentRef;
+        this.active = false;
+
         if(key === 'Click') {
             this._startInterval = () => {
                 this.id = setInterval(() => target.click(), interval);
@@ -119,9 +121,11 @@ class JSBot {
     start() {
         if(!this.target) throw new Error('no target element set')
         this._startInterval();
+        this.active = true;
     }
 
     stop() {
+        this.active = false;
         clearTimeout(this.id);
     }
 }
