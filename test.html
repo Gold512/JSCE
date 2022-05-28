@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/general.css">
+</head>
+<body style="background: black">
+
+    <h1>JSCE Test</h1>
+    <h2>Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto mollitia consectetur odio voluptatem corrupti assumenda iste amet dicta, fugiat magni.</h2>
+    
+    <p>Paragram Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quaerat, porro.</p>
+    
+    <input type="text" size="40" onkeypress="myFunction(event)">
+    
+    <p>"The input code value is:"</p>
+    <p id="demo"></p>
+
+    <p>"Document.keydown: "</p>
+    <p id="document-keydown"></p>
+    
+    <script>
+    function myFunction(event) {
+        let unicode= event.code;
+        document.getElementById("demo").innerHTML = unicode;
+    }
+    document.addEventListener("keydown", e => {
+        document.getElementById("document-keydown").innerHTML = event.code;
+    })
+    </script>
+    <canvas onclick="showCoords(event)" style="background: rgb(70, 70, 70); border: solid 1px #aaa"></canvas>
+
+<p><strong>Tip:</strong> Try to click different places in the canvas.</p>
+
+<p id="coords"></p>
+
+<script>
+function showCoords(event) {
+  var x = event.clientX;
+  var y = event.clientY;
+  var coords = "X coords: " + x + ", Y coords: " + y;
+  document.getElementById("coords").innerHTML = coords;
+}
+</script>
+    </body>
+</html>

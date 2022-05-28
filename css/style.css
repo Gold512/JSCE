@@ -215,3 +215,8 @@
 
 .search-box .search-val-string::before { content: "'" }
 .search-box .search-val-string::after { content: "'" }
+
+.type-option {
+    margin-left: 0;
+    padding-left: 0;
+}

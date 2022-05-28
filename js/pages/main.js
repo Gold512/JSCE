@@ -19,6 +19,15 @@ function mainPageInit() {
         textbox: document.getElementById('opacity-textbox')
     }
 
+    let autoclick = {
+        switch: document.getElementById('autoclick-switch'),
+        action: document.getElementById('autoclick-action'),
+        key: document.getElementById('autoclick-key'),
+        interval: document.getElementById('autoclick-interval'),
+        elementSelect: document.getElementById('autoclick-element-select'),
+        bubbles: document.getElementById('autoclick-key-bubbles')
+    }
+
     let output = document.getElementById('random-callstack-disp');
 
     function randomCall(stack, value) {
@@ -57,9 +66,8 @@ function mainPageInit() {
             } else {
                 cont.querySelector(`[id="stack-${st}"] > span`).innerText = inp;
             }
-            
+        });
 
-        })
         output.appendChild(div)
     }
 
@@ -73,24 +81,24 @@ function mainPageInit() {
     opacity.slider.addEventListener('input', opacityChange)
     opacity.textbox.addEventListener('input', opacityChange)
 
-    speeder.slider.addEventListener('input', function(e) {
+    speeder.slider.addEventListener('input',  e => {
         speeder.textbox.value = parseRange(e.currentTarget.value);
 
         if(!checkSpeedRange(speeder)) return;
 
         speed.setSpeed(Number(speeder.textbox.value));
-    })
+    });
 
-    speeder.textbox.addEventListener('input', function(e) {
+    speeder.textbox.addEventListener('input', e => {
         speeder.slider.value = e.currentTarget.value;
 
         if(!checkSpeedRange(speeder)) return;
 
         speed.setSpeed(Number(speeder.textbox.value));
         
-    })
+    });
 
-    speeder.switch.addEventListener('input', function(e) {
+    speeder.switch.addEventListener('input', e => {
         let disabled = !e.currentTarget.checked;
         speeder.textbox.disabled = disabled;
         speeder.slider.disabled = disabled;
@@ -99,9 +107,9 @@ function mainPageInit() {
         } else {
             speed.enable();
         }
-    })
+    });
 
-    rngel.switch.addEventListener('input', function(e) {
+    rngel.switch.addEventListener('input', e => {
         let state = e.currentTarget.checked;
         rngel.input.disabled = !state;
         if(!state) {
@@ -109,9 +117,82 @@ function mainPageInit() {
         } else {
             rng.set(parserngData(rngel.input), randomCall)
         }
+    });
+
+    rngel.input.addEventListener('input', e => {
+        rng.set(parserngData(e.currentTarget), randomCall)
+    });
+
+    let autoclicker = new JSBot(window.parent.document, 'Click', 100)
+    window.autoclicker = autoclicker;
+
+    autoclick.switch.addEventListener('input', e => {
+        if(e.currentTarget.checked) {
+            autoclicker.interval = Number(autoclicker.interval.value);
+            let keyValue;
+            try { keyValue = JSON.parse(autoclick.key.dataset.value) } catch(e) {
+                keyValue = autoclick.key.dataset.value;
+            }
+            if(autoclick.action.dataset.value == 'key') {
+                autoclicker.key = keyValue;
+
+            } else if(autoclick.action.dataset.value == 'click' && autoclicker.target?.tagName == 'CANVAS') {
+                let x = Number(document.getElementById('autoclick-client-x').value);
+                let y = Number(document.getElementById('autoclick-client-y').value);
+
+                autoclicker.key = {
+                    x: x,
+                    y: y,
+                    code: 'click'
+                }
+            } else {
+                autoclicker.key = 'Click';
+            }
+            
+            autoclicker.bubbles = autoclick.bubbles.checked;
+
+            autoclicker.start();
+        } else {
+            autoclicker.stop();
+        }
     })
 
-    rngel.input.addEventListener('input', function(e) {
-        rng.set(parserngData(e.currentTarget), randomCall)
+    autoclick.elementSelect.addEventListener('click', e => {
+        window.parent.jsce_toggle();
+
+        autoclicker.selectElement().then(el => {
+            window.parent.jsce_toggle();
+            autoclick.elementSelect.value = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.classList.value != '' ? ('.' + [...el.classList].join('.')).replace('.jsce-hover', '') : ''}`;
+            document.getElementById('autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+
+        })
     })
+
+    autoclick.key.addEventListener('keydown', e => {
+        let el = e.currentTarget;
+
+        el.dataset.value = JSON.stringify({
+            keyCode: e.keyCode,
+            code: e.code,
+            key: e.key,
+
+            altKey: e.altKey,
+            ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
+            shiftKey: e.shiftKey
+        });
+
+        el.value = `${e.altKey ? 'Alt+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.code}`;
+
+        e.preventDefault();
+    })
+}
+
+
+function toggle_key_input(e) {
+    let action = e.currentTarget.parentElement.dataset.value
+    console.log(action)
+
+    document.getElementById('autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
+    document.getElementById('autoclick-click-actions').style.display = (action == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
 }

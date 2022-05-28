@@ -81,6 +81,45 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="box">
+                    <div class="box-header">
+                        Autoclicker
+                        <label class="switch">
+                            <input type="checkbox" id="autoclick-switch">
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        Target
+                        <input type='text' id="autoclick-element-select" style="cursor: pointer;" autocomplete="off" readonly>
+                    </div>
+
+                    <div class="field">
+                        Action
+                        <div class="dropdown" data-value="click" id="autoclick-action">
+                            <button onclick="open_dropdown(this)" class="dropbtn">Click</button>
+                            <div class="dropdown-content" onclick="toggle_key_input(event)">
+                                <button onclick="radio_set(this)" data-value="click">Click</a>
+                                <button onclick="radio_set(this)" data-value="key">Press Key</a>
+                            </div>
+                        </div>
+                        <span id="autoclick-key-actions" style="display:none">
+                            <input type="text" placeholder="key" style="margin-left: 3px" autocomplete="off" spellcheck="false" id="autoclick-key">
+                            <input type="checkbox" id="autoclick-key-bubbles" checked> Bubbles
+                        </span>
+                        <span id="autoclick-click-actions" style="display:none">
+                            <input type="number" placeholder="X" style="margin-left: 3px;"id="autoclick-client-x">
+                            <input type="number" placeholder="Y" style="margin-left: 3px;"id="autoclick-client-y">
+                        </span>
+                    </div>
+                    
+                    <div class="field">
+                        Interval 
+                        <input type="number" id="autoclick-interval" min="0" value="100">
+                    </div>
+                </div>
             </div>
 
             <div id="search-page" class="page" style="display:none">
@@ -148,13 +187,15 @@
                     <div class="foldable" id="type-select-cont">
                         <button onclick="this.classList.toggle('show')">type</button>
                         <div id="type-select">
-                            <input id='all-types' type="checkbox" checked> All
+                            <div class="field">
+                                <input id='all-types' type="checkbox" checked> All
+                            </div>
                             <br>
 
-                            <input disabled class='type-option' data-value="boolean" type="checkbox"> Boolean
-                            <input disabled class='type-option' data-value="number" type="checkbox"> Number
-                            <input disabled class='type-option' data-value="string" type="checkbox"> String
-                            <input disabled class='type-option' data-value="function" type="checkbox"> Function
+                            <div class="field"><input disabled class='type-option' data-value="boolean" type="checkbox"> Boolean</div>
+                            <div class="field"><input disabled class='type-option' data-value="number" type="checkbox"> Number</div>
+                            <div class="field"><input disabled class='type-option' data-value="string" type="checkbox"> String</div>
+                            <div class="field"><input disabled class='type-option' data-value="function" type="checkbox"> Function</div>
                         </div>
                     </div>
                     <button onclick="newSearch()">New Search</button>

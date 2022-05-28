@@ -2,59 +2,146 @@ class JSBot {
     constructor(documentRef, key, interval) {
         this.document = documentRef;
         this.active = false;
-
-        if(key === 'Click') {
-            this._startInterval = () => {
-                this.id = setInterval(() => target.click(), interval);
-            }
-            return;
-        }
-
+        this.interval = interval;
         this.target = null;
+        this.key = key;
+        this.bubbles = true;
 
-        // modifier key detection
-        let keyDict = {
-            'Space': ' '
-        }
+        this._startInterval = (key, interval) => {
+            if(key === 'Click') {
+                this.id = setInterval(() => this.target.click(), interval);
+                return;
+            } 
+            
+            if(typeof key === 'object' && key.code == 'click') {
+                this.id = setInterval(() => {
+                    let event = new Event('click', {bubbles: true});
+                    Object.defineProperties(event, {
+                        'target': {
+                            get: () => this.target
+                        },
+                        'currentTarget': {
+                            get: () => this.target
+                        },
+                        'clientX': {
+                            get: () => key.x
+                        },
+                        'clientY': {
+                            get: () => key.y
+                        },
 
-        if(keyDict[key] !== undefined) key = keyDict[key];
+                        'altKey': {
+                            get: () => false
+                        },
+                        'ctrlKey': {
+                            get: () => false
+                        },
+                        'metaKey': {
+                            get: () => false
+                        },
+                        'shiftKey': {
+                            get: () => false
+                        }
+                    });
 
-        // event.code
-        let keyCodeDict = {
-            'Enter': 13,
-            'Backspace': 8,
-            'ArrowLeft': 37,
-            'ArrowUp': 38,
-            'ArrowRight': 39,
-            'ArrowDown': 40
-        };
-
-        let code = key;
-        if(key.length === 1) {
-            if(key.match(/^\w$/)) {
-                code = `Key${key.toUpperCase()}`;
-            } else if(key.match(/^\d$/)) {
-                code = `Digit${key}`;
+                    event.getModifierState = () => false;
+                    
+                    this.target.dispatchEvent(event);
+                }, interval);
+                return
             }
-        }
 
-        this._startInterval = () => {
+            let ev = {
+                altKey: false,
+                ctrlKey: false,
+                metaKey: false,
+                shiftKey: false
+            };
+
+            if(typeof key === 'string') {
+                // modifier key detection
+                let keyDict = {
+                    'Space': ' '
+                }
+
+                if(keyDict[key] !== undefined) key = keyDict[key];
+
+                // event.code
+                let keyCodeDict = {
+                    'Enter': 13,
+                    'Backspace': 8,
+                    'ArrowLeft': 37,
+                    'ArrowUp': 38,
+                    'ArrowRight': 39,
+                    'ArrowDown': 40
+                };
+
+                let code = key;
+                if(key.length === 1) {
+                    if(key.match(/^\w$/)) {
+                        code = `Key${key.toUpperCase()}`;
+                    } else if(key.match(/^\d$/)) {
+                        code = `Digit${key}`;
+                    }
+                }
+
+                ev.keyCode = keyCodeDict[key] || key.charCodeAt(0);
+                ev.code = code;
+                ev.key = key;
+            } else {
+                ev = Object.assign(ev, key);
+            }
+            
+
             this.id = setInterval(() => {
-                let eventTypes = ['keydown', 'keypress', 'keyup']
+                let eventTypes = ['keydown', 'keyup', 'keypress']
                 if(this.target instanceof HTMLInputElement) eventTypes.push('input');
                 for(let i = 0; i < eventTypes.length; i++) {
-                    let event = new Event(eventTypes[i]);
-                    event.keyCode = keyCodeDict[key] || key.charCodeAt(0);
-                    event.which = keyCodeDict[key] || key.charCodeAt(0);
-                    event.code = code;
-                    event.key = key;
-                    Object.defineProperty(event, 'target', {
-                        get: () => this.target
-                    })
-                    Object.defineProperty(event, 'currentTarget', {
-                        get: () => this.target
-                    })
+                    let event = new Event(eventTypes[i], {bubbles: this.bubbles});
+                    Object.defineProperties(event, {
+                        'keyCode': {
+                            get: () => ev.keyCode
+                        },
+                        'code': {
+                            get: () => ev.code
+                        },
+                        'which': {
+                            get: () => ev.keyCode
+                        },
+                        'key': {
+                            get: () => ev.key
+                        },
+                        'target': {
+                            get: () => this.target
+                        },
+                        'currentTarget': {
+                            get: () => this.target
+                        },
+                        
+                        'altKey': {
+                            get: () => ev.altKey
+                        },
+                        'ctrlKey': {
+                            get: () => ev.ctrlKey
+                        },
+                        'metaKey': {
+                            get: () => ev.metaKey
+                        },
+                        'shiftKey': {
+                            get: () => ev.shiftKey
+                        }
+                    
+                    });
 
+                    event.getModifierState = (state) => {
+                        switch (state) {
+                            case "Alt": return ev.altKey
+                            case "Ctrl": return ev.ctrlKey
+                            case "Shift": return ev.shiftKey
+                            case "Meta": return ev.metaKey
+                        }
+                    }
+                    
                     this.target.dispatchEvent(event);
                 }
             }, interval)
@@ -73,45 +160,43 @@ class JSBot {
             reject = _reject;
         });
 
+        let overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.zIndex = '99999999999';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.backgroundColor = 'rgba(255, 0, 0, .3)'
+        overlay.style.transition = 'all .12s ease-in'
+        this.document.documentElement.appendChild(overlay);
+
         let onclick = e => {
-            style.remove();
+            overlay.remove();
+
             this.target = e.target;
             this.document.removeEventListener('click', onclick)
             this.document.removeEventListener('mouseover', mouseover)
-            this.document.removeEventListener('mouseout', mouseout)
             resolve(e.target);
         }
 
         let mouseover = e => {
             e.stopPropagation();
 
-            let prevHover = this.document.querySelector(".jsce-hover")
-            if(prevHover) prevHover.classList.remove("jsce-hover");     
-            e.target.classList.add("jsce-hover");
-        }
+            let rect = e.target.getBoundingClientRect();
 
-        let mouseout = e => {
-            e.target.classList.remove("jsce-hover");
+            overlay.style.left = rect.left + "px";
+            overlay.style.top = rect.top + "px";
+            overlay.style.width = rect.width + "px";
+            overlay.style.height = rect.height + "px";
         }
 
         try {
-            let style = this.document.createElement('style');
-            style.innerHTML = '.jsce-hover { background-color: rgba(255, 0, 0, 0.32) !important; cursor: pointer !important; }';
-            style.id = 'jsce-element-selector';
-            this.document.body.appendChild(style);
-
-            
-
             this.document.addEventListener('click', onclick)
 
             let el = this.document.querySelector('body')
 
             el.addEventListener('mouseover', mouseover)
-            el.addEventListener('mouseout', mouseout);
         } catch(e) {
             this.document.removeEventListener('click', onclick)
             this.document.removeEventListener('mouseover', mouseover)
-            this.document.removeEventListener('mouseout', mouseout)
             reject(e);
         }
 
@@ -120,7 +205,7 @@ class JSBot {
 
     start() {
         if(!this.target) throw new Error('no target element set')
-        this._startInterval();
+        this._startInterval(this.key, this.interval);
         this.active = true;
     }
 
