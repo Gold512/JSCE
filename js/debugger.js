@@ -117,6 +117,13 @@ class IndexedObj {
         Object.defineProperty(o.parent, o.name, object)
     }
 
+    /**
+     * 
+     * @param {Object} search dictionary of search parameters
+     *  @arg {String|Number|Boolean} search.value value to search for 
+     *  @arg {Object} search.type types to search for
+     *  @arg {String} search.operation operation to compare values with 
+     */
     newSearch(search) {
         this.update('read');
         this.search = this._searchData(this.obj, this._parseSearch(search));
@@ -236,7 +243,7 @@ class IndexedObj {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
             if(typeof v === 'object') {
-                res.concat(this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i], depth+1));
+                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i], depth+1));
             } else if(type[typeof v] && operation(v, value)) {
                 res.push([path + (path !== '' ? '.' : '') + k[i], v]);
             }

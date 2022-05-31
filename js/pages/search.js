@@ -264,7 +264,8 @@ function newSearch() {
             break;
         }
 
-        objectIndex = new IndexedObj(root);
+        let objectIndex = new IndexedObj(root);
+        window.top.objectIndex = objectIndex;
         objectIndex.location = location;
         if(location === 'sessionStorage' || location === 'localStorage') {
             objectIndex.onUpdate(read, write)
