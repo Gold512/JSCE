@@ -1,6 +1,7 @@
 class JSBot {
-    constructor(documentRef, key, interval) {
-        this.document = documentRef;
+    constructor(windowCtx, key, interval) {
+        this.window = windowCtx;
+        this.document = windowCtx.document;
         this.active = false;
         this.interval = interval;
         this.target = null;
@@ -174,6 +175,7 @@ class JSBot {
             this.target = e.target;
             this.document.removeEventListener('click', onclick)
             this.document.removeEventListener('mouseover', mouseover)
+            this.document.removeEventListener('scroll', scroll)
             resolve(e.target);
         }
 
@@ -182,21 +184,48 @@ class JSBot {
 
             let rect = e.target.getBoundingClientRect();
 
-            overlay.style.left = rect.left + "px";
-            overlay.style.top = rect.top + "px";
+            this.lastPos = [e.clientX, e.clientY];
+
+            overlay.style.left = (rect.left + this.window.scrollX) + "px";
+            overlay.style.top = (rect.top + this.window.scrollY) + "px";
             overlay.style.width = rect.width + "px";
             overlay.style.height = rect.height + "px";
         }
 
+        let scroll = e => {
+            if(!this.lastPos) return;
+
+            let ticking = false;
+
+            // Prevent DOM modifications from occouring too quickly
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    let el = this.document.elementFromPoint(this.lastPos[0], this.lastPos[1]);
+
+                    let rect = el.getBoundingClientRect();                        
+                    overlay.style.left = (rect.left + this.window.scrollX) + "px";
+                    overlay.style.top = (rect.top + this.window.scrollY) + "px";
+                    overlay.style.width = rect.width + "px";
+                    overlay.style.height = rect.height + "px";
+                    ticking = false;
+                });
+            
+                ticking = true;
+            }
+
+            
+        }
+
         try {
             this.document.addEventListener('click', onclick)
+            this.document.addEventListener('scroll', scroll)
 
             let el = this.document.querySelector('body')
-
             el.addEventListener('mouseover', mouseover)
         } catch(e) {
             this.document.removeEventListener('click', onclick)
             this.document.removeEventListener('mouseover', mouseover)
+            this.document.removeEventListener('scroll', scroll)
             reject(e);
         }
 

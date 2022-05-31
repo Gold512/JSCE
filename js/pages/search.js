@@ -120,7 +120,7 @@ function displaySearchRes(s) {
             el.addEventListener('blur', e => {
                 if(closed) return;
                 val.innerText = originalValue;
-                val.dataset.type = '';
+                val.dataset.type = div.dataset.type;
                 div.dataset.active = null;
             })
 
@@ -135,15 +135,25 @@ function displaySearchRes(s) {
                 if(v === null) return;
                 v = v.trim();
                 if(!isNaN(Number(v))) v = Number(v);
-
-                if(v === 'bool true') v = true;
-                if(v === 'bool false') v = false;
+                if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
+                    switch (v) {
+                        case 'true':
+                            v = true;
+                            break;
+                        case 'false':
+                            v = false;
+                            break;
+                    }
+                }
+                
                 try {
                     objectIndex.set(e.currentTarget.parentElement.parentElement.dataset.path, v);
                     
                     if(typeof v === 'string') val.classList.add('search-val-string');
                     e.currentTarget.parentElement.innerText = v;
-                    val.dataset.type = '';
+                    div.dataset.type = typeof v;
+                    val.dataset.type = typeof v;
+                    originalValue = v;
                 } catch(e) {
                     throw e;
                     alert(e);
@@ -157,6 +167,16 @@ function displaySearchRes(s) {
                     return;
                 }
                 if(!isNaN(Number(v))) v = Number(v);
+                if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
+                    switch (v) {
+                        case 'true':
+                            v = true;
+                            break;
+                        case 'false':
+                            v = false;
+                            break;
+                    }
+                }
                 val.dataset.type = typeof v;
             })
 
@@ -165,6 +185,16 @@ function displaySearchRes(s) {
 
             let v = originalValue;
             if(!isNaN(Number(v))) v = Number(v);
+            if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
+                switch (v) {
+                    case 'true':
+                        v = true;
+                        break;
+                    case 'false':
+                        v = false;
+                        break;
+                }
+            }
 
             val.dataset.type = typeof v;
 
@@ -173,9 +203,12 @@ function displaySearchRes(s) {
 
         let path = document.createElement('div');
         div.dataset.path = e[0];
+        div.dataset.type = typeof e[1];
+
         path.innerText = formatPath(e[0]);
 
         let val = document.createElement('div');
+        val.dataset.type = typeof e[1];
         if(typeof e[1] === 'string') {
             val.classList.add('search-val-string')
         } else {

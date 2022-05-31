@@ -123,7 +123,7 @@ function mainPageInit() {
         rng.set(parserngData(e.currentTarget), randomCall)
     });
 
-    let autoclicker = new JSBot(window.parent.document, 'Click', 100)
+    let autoclicker = new JSBot(window.parent, 'Click', 100)
     window.autoclicker = autoclicker;
 
     autoclick.switch.addEventListener('input', e => {
