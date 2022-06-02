@@ -242,7 +242,7 @@ class IndexedObj {
         for(let i = 0; i < k.length; i++) {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
-            if(typeof v === 'object') {
+            if(typeof v === 'object' && !(v instanceof Function)) {
                 res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i], depth+1));
             } else if(type[typeof v] && operation(v, value)) {
                 res.push([path + (path !== '' ? '.' : '') + k[i], v]);

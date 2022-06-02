@@ -123,8 +123,111 @@ function mainPageInit() {
         rng.set(parserngData(e.currentTarget), randomCall)
     });
 
-    let autoclicker = new JSBot(window.parent, 'Click', 100)
-    window.autoclicker = autoclicker;
+    // let autoclicker = new JSBot(window.parent, 'Click', 100)
+
+    // autoclick.switch.addEventListener('input', e => {
+    //     if(e.currentTarget.checked) {
+    //         autoclicker.interval = Number(autoclicker.interval.value);
+    //         let keyValue;
+    //         try { keyValue = JSON.parse(autoclick.key.dataset.value) } catch(e) {
+    //             keyValue = autoclick.key.dataset.value;
+    //         }
+    //         if(autoclick.action.dataset.value == 'key') {
+    //             autoclicker.key = keyValue;
+
+    //         } else if(autoclick.action.dataset.value == 'click' && autoclicker.target?.tagName == 'CANVAS') {
+    //             let x = Number(document.getElementById('autoclick-client-x').value);
+    //             let y = Number(document.getElementById('autoclick-client-y').value);
+
+    //             autoclicker.key = {
+    //                 x: x,
+    //                 y: y,
+    //                 code: 'click'
+    //             }
+    //         } else {
+    //             autoclicker.key = 'Click';
+    //         }
+            
+    //         autoclicker.bubbles = autoclick.bubbles.checked;
+
+    //         autoclicker.start();
+    //     } else {
+    //         autoclicker.stop();
+    //     }
+    // })
+
+    // autoclick.elementSelect.addEventListener('click', e => {
+    //     window.parent.jsce_toggle();
+
+    //     autoclicker.selectElement().then(el => {
+    //         window.parent.jsce_toggle();
+    //         autoclick.elementSelect.value = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.classList.value != '' ? ('.' + [...el.classList].join('.')).replace('.jsce-hover', '') : ''}`;
+    //         document.getElementById('autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+
+    //     })
+    // })
+
+    // autoclick.key.addEventListener('keydown', e => {
+    //     let el = e.currentTarget;
+
+    //     el.dataset.value = JSON.stringify({
+    //         keyCode: e.keyCode,
+    //         code: e.code,
+    //         key: e.key,
+
+    //         altKey: e.altKey,
+    //         ctrlKey: e.ctrlKey,
+    //         metaKey: e.metaKey,
+    //         shiftKey: e.shiftKey
+    //     });
+
+    //     el.value = `${e.altKey ? 'Alt+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.code}`;
+
+    //     e.preventDefault();
+    // })
+}
+
+
+function toggle_key_input(e) {
+    let action = e.currentTarget.parentElement.dataset.value
+    console.log(action)
+
+    document.getElementById('autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
+    document.getElementById('autoclick-click-actions').style.display = (action == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+}
+
+function* IDGenerator() {
+    let i = 0;
+    while(true) {
+        i++;
+        yield i.toString(36);
+    }
+}
+
+function createAutoclicker() {
+    let autoclicker_list = document.getElementById('autoclick-container');
+    let autoclicker = new JSBot(window.parent, 'Click', 100);
+    let template = document.getElementById('autoclicker-template');
+    let container = template.content.cloneNode(true).children[0];
+    console.log(container)
+
+    document.getElementById("autoclicker-item");
+    
+    autoclicker_list.appendChild(container);
+
+    let autoclick = {
+        switch: container.querySelector('#autoclick-switch'),
+        action: container.querySelector('#autoclick-action'),
+        key: container.querySelector('#autoclick-key'),
+        interval: container.querySelector('#autoclick-interval'),
+        elementSelect: container.querySelector('#autoclick-element-select'),
+        bubbles: container.querySelector('#autoclick-key-bubbles'),
+
+        clientX: container.querySelector('#autoclick-client-x'),
+        clientY: container.querySelector('#autoclick-client-y'),
+    }
+
+    console.log(autoclick)
 
     autoclick.switch.addEventListener('input', e => {
         if(e.currentTarget.checked) {
@@ -135,11 +238,11 @@ function mainPageInit() {
             }
             if(autoclick.action.dataset.value == 'key') {
                 autoclicker.key = keyValue;
-
+            
             } else if(autoclick.action.dataset.value == 'click' && autoclicker.target?.tagName == 'CANVAS') {
-                let x = Number(document.getElementById('autoclick-client-x').value);
-                let y = Number(document.getElementById('autoclick-client-y').value);
-
+                let x = Number(autoclick.clientX.value);
+                let y = Number(autoclick.clientY.value);
+            
                 autoclicker.key = {
                     x: x,
                     y: y,
@@ -150,49 +253,46 @@ function mainPageInit() {
             }
             
             autoclicker.bubbles = autoclick.bubbles.checked;
-
+        
             autoclicker.start();
         } else {
             autoclicker.stop();
         }
     })
-
+    
     autoclick.elementSelect.addEventListener('click', e => {
         window.parent.jsce_toggle();
-
-        autoclicker.selectElement().then(el => {
+    
+        autoclicker.selectElement().then(event => {
+            let el = event.target;
             window.parent.jsce_toggle();
             autoclick.elementSelect.value = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.classList.value != '' ? ('.' + [...el.classList].join('.')).replace('.jsce-hover', '') : ''}`;
-            document.getElementById('autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+            container.getElementById('autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
 
+            if(el.tagName == 'CANVAS') {
+                autoclick.clientX.value = event.clientX
+                autoclick.clientY.value = event.clientY
+            }
         })
     })
-
+    
     autoclick.key.addEventListener('keydown', e => {
         let el = e.currentTarget;
-
+    
         el.dataset.value = JSON.stringify({
             keyCode: e.keyCode,
             code: e.code,
             key: e.key,
-
+        
             altKey: e.altKey,
             ctrlKey: e.ctrlKey,
             metaKey: e.metaKey,
             shiftKey: e.shiftKey
         });
-
+    
         el.value = `${e.altKey ? 'Alt+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.code}`;
-
+    
         e.preventDefault();
     })
-}
-
-
-function toggle_key_input(e) {
-    let action = e.currentTarget.parentElement.dataset.value
-    console.log(action)
-
-    document.getElementById('autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
-    document.getElementById('autoclick-click-actions').style.display = (action == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+    
 }

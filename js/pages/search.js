@@ -3,14 +3,15 @@ function searchPageInit() {
     let boxes = document.querySelectorAll('.type-option');
     let operation = document.getElementById('search-operation');
     let opBtn = document.getElementById('search-op-btn');
+    let searchBox = document.getElementById('search-value');
 
-    allBtn.addEventListener('input', function(e) {
+    allBtn.addEventListener('input', e => {
         for(let i = 0; i < boxes.length; i++) {
             boxes[i].disabled = allBtn.checked;
         }
     });
 
-    document.getElementById('search-value').addEventListener('input', function(e) {
+    searchBox.addEventListener('input', e => {
         if(operation.dataset.value != 'auto' || e.currentTarget.value == '') {
             e.currentTarget.classList.remove('error')
             return;
@@ -23,6 +24,11 @@ function searchPageInit() {
             e.currentTarget.classList.remove('error');
             opBtn.innerText = `auto (${v.operation})`
         }
+    })
+
+    searchBox.addEventListener('keydown', e => {
+        if(e.code !== 'Enter') return
+        newSearch();
     })
 }
 
@@ -85,6 +91,22 @@ function parseStorage(o) {
     return res;
 }
 
+function autoTypeCast(v) {
+    const o = {"true": true, "false": false};
+    const QUOTES = [`'`, `"`];
+
+    v = v.trim();
+    if(!isNaN(Number(v))) {
+        v = Number(v);
+    } else if(o[v] !== undefined) {
+        v = o[v];
+    } else if(QUOTES.includes(v[0]) && QUOTES.includes(v[v.length - 1])) {
+        v = v.slice(1, -1);
+    }
+    
+    return v;
+}
+
 function formatPath(str) {
     return str.replaceAll(/.(\d+)(?!\w)/g, '[$1]')
 }
@@ -107,7 +129,7 @@ function displaySearchRes(s) {
         div.classList.add('search-box');
         div.addEventListener('click', function(e) {
             if(div.dataset.active === 'true') return;
-            val.classList.remove('search-val-string')
+            val_container.classList.remove('search-val-string')
 
             let el = document.createElement('input');
             let originalValue = val.innerText;
@@ -119,9 +141,17 @@ function displaySearchRes(s) {
 
             el.addEventListener('blur', e => {
                 if(closed) return;
+                val = document.createElement('span');
+                val_container.innerText = '';
+
                 val.innerText = originalValue;
-                val.dataset.type = div.dataset.type;
+                val_container.appendChild(val);
+
+                val_container.dataset.type = div.dataset.type;
                 div.dataset.active = null;
+
+            
+                if(div.dataset.type === 'string') val_container.classList.add('search-val-string');
             })
 
             el.addEventListener('keydown', e => {
@@ -133,26 +163,22 @@ function displaySearchRes(s) {
                 div.dataset.active = null;
 
                 if(v === null) return;
-                v = v.trim();
-                if(!isNaN(Number(v))) v = Number(v);
-                if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
-                    switch (v) {
-                        case 'true':
-                            v = true;
-                            break;
-                        case 'false':
-                            v = false;
-                            break;
-                    }
-                }
+                v = autoTypeCast(v);
                 
                 try {
                     objectIndex.set(e.currentTarget.parentElement.parentElement.dataset.path, v);
                     
-                    if(typeof v === 'string') val.classList.add('search-val-string');
-                    e.currentTarget.parentElement.innerText = v;
+                    if(typeof v === 'string') val_container.classList.add('search-val-string');
+
+                    let parent = e.currentTarget.parentElement;
+                    val = document.createElement('span');
+                    val.innerText = v;
+
+                    parent.innerHTML = '';
+                    parent.appendChild(val);
+
                     div.dataset.type = typeof v;
-                    val.dataset.type = typeof v;
+                    val_container.dataset.type = typeof v;
                     originalValue = v;
                 } catch(e) {
                     throw e;
@@ -163,40 +189,21 @@ function displaySearchRes(s) {
             el.addEventListener('input', e => {
                 let v = el.value.trim();
                 if(v == '') {
-                    val.dataset.type = 'undefined';
+                    val_container.dataset.type = 'undefined';
                     return;
                 }
-                if(!isNaN(Number(v))) v = Number(v);
-                if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
-                    switch (v) {
-                        case 'true':
-                            v = true;
-                            break;
-                        case 'false':
-                            v = false;
-                            break;
-                    }
-                }
-                val.dataset.type = typeof v;
+                v = autoTypeCast(v);
+                
+                val_container.dataset.type = typeof v;
             })
 
-            val.innerHTML = '';
-            val.appendChild(el);
+            val_container.innerHTML = '';
+            val_container.appendChild(el);
 
             let v = originalValue;
-            if(!isNaN(Number(v))) v = Number(v);
-            if(/* div.dataset.type == 'boolean' && */['true', 'false'].includes(v)) {
-                switch (v) {
-                    case 'true':
-                        v = true;
-                        break;
-                    case 'false':
-                        v = false;
-                        break;
-                }
-            }
+            v = autoTypeCast(v);
 
-            val.dataset.type = typeof v;
+            val_container.dataset.type = typeof v;
 
             el.focus();
         })
@@ -207,17 +214,20 @@ function displaySearchRes(s) {
 
         path.innerText = formatPath(e[0]);
 
-        let val = document.createElement('div');
-        val.dataset.type = typeof e[1];
+        let val_container = document.createElement('div');
+        val_container.dataset.type = typeof e[1];
         if(typeof e[1] === 'string') {
-            val.classList.add('search-val-string')
+            val_container.classList.add('search-val-string')
         } else {
-            val.classList.remove('search-val-string')
+            val_container.classList.remove('search-val-string')
         }
+
+        let val = document.createElement('span');
         val.innerText = e[1];
+        val_container.appendChild(val);
 
         div.appendChild(path);
-        div.appendChild(val);
+        div.appendChild(val_container);
         output.appendChild(div);
     }
 }
@@ -264,8 +274,7 @@ function newSearch() {
             break;
         }
 
-        let objectIndex = new IndexedObj(root);
-        window.top.objectIndex = objectIndex;
+        objectIndex = new IndexedObj(root);
         objectIndex.location = location;
         if(location === 'sessionStorage' || location === 'localStorage') {
             objectIndex.onUpdate(read, write)

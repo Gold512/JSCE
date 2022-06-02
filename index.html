@@ -85,40 +85,11 @@
                 <div class="box">
                     <div class="box-header">
                         Autoclicker
-                        <label class="switch">
-                            <input type="checkbox" id="autoclick-switch">
-                            <span class="switch-slider round"></span>
-                        </label>
+                        
+                        <button onclick="createAutoclicker()">+</button>
                     </div>
 
-                    <div class="field">
-                        Target
-                        <input type='text' id="autoclick-element-select" style="cursor: pointer;" autocomplete="off" readonly>
-                    </div>
-
-                    <div class="field">
-                        Action
-                        <div class="dropdown" data-value="click" id="autoclick-action">
-                            <button onclick="open_dropdown(this)" class="dropbtn">Click</button>
-                            <div class="dropdown-content" onclick="toggle_key_input(event)">
-                                <button onclick="radio_set(this)" data-value="click">Click</a>
-                                <button onclick="radio_set(this)" data-value="key">Press Key</a>
-                            </div>
-                        </div>
-                        <span id="autoclick-key-actions" style="display:none">
-                            <input type="text" placeholder="key" style="margin-left: 3px" autocomplete="off" spellcheck="false" id="autoclick-key">
-                            <input type="checkbox" id="autoclick-key-bubbles" checked> Bubbles
-                        </span>
-                        <span id="autoclick-click-actions" style="display:none">
-                            <input type="number" placeholder="X" style="margin-left: 3px;"id="autoclick-client-x">
-                            <input type="number" placeholder="Y" style="margin-left: 3px;"id="autoclick-client-y">
-                        </span>
-                    </div>
-                    
-                    <div class="field">
-                        Interval 
-                        <input type="number" id="autoclick-interval" min="0" value="100">
-                    </div>
+                    <div id="autoclick-container"></div>
                 </div>
             </div>
 
@@ -210,5 +181,43 @@
             <div id="console-page" class="page" style="display:none"></div>
         </div>
     </div>
+    <template id="autoclicker-template">
+        <div class="list-item">
+            <label class="switch">
+                <input type="checkbox" id="autoclick-switch">
+                <span class="switch-slider round"></span>
+            </label>
+
+            <div class="field">
+                Target
+                <input type='text' id="autoclick-element-select" style="cursor: pointer;" autocomplete="off" readonly>
+            </div>
+
+            <div class="field">
+                Action
+                <div class="dropdown" data-value="click" id="autoclick-action">
+                    <button onclick="open_dropdown(this)" class="dropbtn">Click</button>
+                    <div class="dropdown-content" onclick="toggle_key_input(event)">
+                        <button onclick="radio_set(this)" data-value="click">Click</button>
+                        <button onclick="radio_set(this)" data-value="key">Press Key</button>
+                    </div>
+                </div>
+                <span id="autoclick-key-actions" style="display:none">
+                    <input type="text" placeholder="key" style="margin-left: 3px" autocomplete="off" spellcheck="false" id="autoclick-key">
+                    <input type="checkbox" id="autoclick-key-repeat" checked> Repeats
+                    <input type="checkbox" id="autoclick-key-bubbles" checked> Bubbles
+                </span>
+                <span id="autoclick-click-actions" style="display:none">
+                    <input type="number" placeholder="X" style="margin-left: 3px;"id="autoclick-client-x">
+                    <input type="number" placeholder="Y" style="margin-left: 3px;"id="autoclick-client-y">
+                </span>
+            </div>
+
+            <div class="field">
+                Interval 
+                <input type="number" id="autoclick-interval" min="0" value="100">
+            </div>
+        </div>
+    </template>
 </body>
 </html>

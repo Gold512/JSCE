@@ -7,6 +7,7 @@ class JSBot {
         this.target = null;
         this.key = key;
         this.bubbles = true;
+        this.repeats = false;
 
         this._startInterval = (key, interval) => {
             if(key === 'Click') {
@@ -98,7 +99,7 @@ class JSBot {
                 let eventTypes = ['keydown', 'keyup', 'keypress']
                 if(this.target instanceof HTMLInputElement) eventTypes.push('input');
                 for(let i = 0; i < eventTypes.length; i++) {
-                    let event = new Event(eventTypes[i], {bubbles: this.bubbles});
+                    let event = new Event(eventTypes[i], {bubbles: this.bubbles, repeats: this.repeats});
                     Object.defineProperties(event, {
                         'keyCode': {
                             get: () => ev.keyCode
@@ -149,8 +150,31 @@ class JSBot {
         }
     }
 
+    /**
+     * Define a criteria to find the target element 
+     * @param {HTMLElement|String|Function} element a reference to the element, a string containing a css selector to get the element or a function that returns the element 
+     */
     setElement(element) {
-        this.target = element;
+        if(element instanceof HTMLElement) {
+            this.target = element;
+        } else if(element instanceof Function) {
+            Object.defineProperty(this, 'target', {
+                get: () => element(),
+                set: v => {
+                    Object.defineProperty(this, 'target', {value: v})
+                }
+            });
+        } else if(typeof element === 'string') {
+            Object.defineProperty(this, 'target', {
+                get: () => this.document.querySelector(element),
+                set: v => {
+                    Object.defineProperty(this, 'target', {value: v})
+                }
+            });
+        } else {
+            throw new Error('invalid element')
+        }
+        
     }
 
     selectElement() {
@@ -176,7 +200,7 @@ class JSBot {
             this.document.removeEventListener('click', onclick)
             this.document.removeEventListener('mouseover', mouseover)
             this.document.removeEventListener('scroll', scroll)
-            resolve(e.target);
+            resolve(e);
         }
 
         let mouseover = e => {
