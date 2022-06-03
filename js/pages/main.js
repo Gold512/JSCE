@@ -214,6 +214,8 @@ function createAutoclicker() {
         clientY: container.querySelector('#autoclick-client-y'),
     }
 
+    console.log(autoclick)
+
     autoclick.switch.addEventListener('input', e => {
         if(e.currentTarget.checked) {
             autoclicker.interval = Number(autoclicker.interval.value);
