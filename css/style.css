@@ -250,6 +250,10 @@
 .search-box div[data-type="boolean"]:nth-child(2)::before { color: rgb(108, 108, 255) }
 .search-box div[data-type="function"]:nth-child(2)::before { color: mediumpurple }
 
+.list-item {
+    transition: margin-bottom .2s ease-in-out
+}
+
 .list-item:first-child {
     margin-top: 5px;
 }
