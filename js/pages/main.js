@@ -123,68 +123,81 @@ function mainPageInit() {
         rng.set(parserngData(e.currentTarget), randomCall)
     });
 
-    // let autoclicker = new JSBot(window.parent, 'Click', 100)
+    // floating btn 
+    let floating_btn_init = false;
+    document.getElementById('floating-btn-switch').addEventListener('input', e => {
+        if(!floating_btn_init) {
+            floating_btn_init = true;
+            init_floating_btn();
+            return;
+        }
+    })
+}
 
-    // autoclick.switch.addEventListener('input', e => {
-    //     if(e.currentTarget.checked) {
-    //         autoclicker.interval = Number(autoclicker.interval.value);
-    //         let keyValue;
-    //         try { keyValue = JSON.parse(autoclick.key.dataset.value) } catch(e) {
-    //             keyValue = autoclick.key.dataset.value;
-    //         }
-    //         if(autoclick.action.dataset.value == 'key') {
-    //             autoclicker.key = keyValue;
+function init_floating_btn() {
+    let el = document.createElement('div');
+    el.style.position = 'fixed';
+    el.style.zIndex = '99999999999';
+    el.style.opacity = '.5';
+    el.style.backgroundColor = '#000';
+    el.style.left = '10px';
+    el.style.top = '10px';
+    el.style.width = '20px';
+    el.style.height = '20px';
+    el.style.borderRadius = '10px';
+    el.style.userSelect = 'none';
+    el.id = 'jsce-floating-btn';
+    el.style.display = 'none';
+    el.innerText = '🔧';  
 
-    //         } else if(autoclick.action.dataset.value == 'click' && autoclicker.target?.tagName == 'CANVAS') {
-    //             let x = Number(document.getElementById('autoclick-client-x').value);
-    //             let y = Number(document.getElementById('autoclick-client-y').value);
+    let moved = false;
 
-    //             autoclicker.key = {
-    //                 x: x,
-    //                 y: y,
-    //                 code: 'click'
-    //             }
-    //         } else {
-    //             autoclicker.key = 'Click';
-    //         }
-            
-    //         autoclicker.bubbles = autoclick.bubbles.checked;
+    function updatePos(ev) {
+        moved = true;
 
-    //         autoclicker.start();
-    //     } else {
-    //         autoclicker.stop();
-    //     }
-    // })
+        let ticking = false;
 
-    // autoclick.elementSelect.addEventListener('click', e => {
-    //     window.parent.jsce_toggle();
+        // Prevent DOM modifications from occouring too quickly
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                // Subtract width and height so that the element will
+                // be in the middle 
+                el.style.left = (ev.clientX - 10) + 'px';
+                el.style.top = (ev.clientY - 10) + 'px';
+            });
+            ticking = true;
+        }
+    }
 
-    //     autoclicker.selectElement().then(el => {
-    //         window.parent.jsce_toggle();
-    //         autoclick.elementSelect.value = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.classList.value != '' ? ('.' + [...el.classList].join('.')).replace('.jsce-hover', '') : ''}`;
-    //         document.getElementById('autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+    function mouseUp(ev) {
+        el.style.opacity = '.5';
+        el.style.pointerEvents = '';
+        el.style.transform = '';
 
-    //     })
-    // })
+        window.parent.document.removeEventListener('mouseup', mouseUp)
+        window.parent.document.removeEventListener('mousemove', updatePos)
 
-    // autoclick.key.addEventListener('keydown', e => {
-    //     let el = e.currentTarget;
+        if(moved) {
+            moved = false;
+            return;
+        };
+        
+        let element = window.parent.document.getElementById('jsce-container');
+        element.style.display = 'block';
+        el.style.display = 'none';
+        element.children[0].focus();
+    }
 
-    //     el.dataset.value = JSON.stringify({
-    //         keyCode: e.keyCode,
-    //         code: e.code,
-    //         key: e.key,
+    el.addEventListener('mousedown', () => {
+        el.style.transform = 'scale(1.2)';
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'none';
 
-    //         altKey: e.altKey,
-    //         ctrlKey: e.ctrlKey,
-    //         metaKey: e.metaKey,
-    //         shiftKey: e.shiftKey
-    //     });
+        window.parent.document.addEventListener('mousemove', updatePos)
+        window.parent.document.addEventListener('mouseup', mouseUp)
+    })
 
-    //     el.value = `${e.altKey ? 'Alt+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.code}`;
-
-    //     e.preventDefault();
-    // })
+    window.parent.document.documentElement.appendChild(el);
 }
 
 function* IDGenerator() {
@@ -213,8 +226,6 @@ function createAutoclicker() {
         clientX: container.querySelector('#autoclick-client-x'),
         clientY: container.querySelector('#autoclick-client-y'),
     }
-
-    console.log(autoclick)
 
     autoclick.switch.addEventListener('input', e => {
         if(e.currentTarget.checked) {
@@ -284,10 +295,9 @@ function createAutoclicker() {
 
     container.querySelector('#autoclick-action .dropdown-content').addEventListener('click', e => {
         let action = e.currentTarget.parentElement.dataset.value
-        console.log(action)
     
-        document.getElementById('autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
-        document.getElementById('autoclick-click-actions').style.display = (action == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
+        container.querySelector('#autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
+        container.querySelector('#autoclick-click-actions').style.display = (action == 'click' && autoclicker.target?.tagName == 'CANVAS') ? 'inline-block' : 'none';
     });
 
     container.querySelector('#close_instance').addEventListener('click', e => {

@@ -23,7 +23,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: rgb(124, 124, 124);
     -webkit-transition: .4s;
     transition: .4s;
 }
@@ -35,7 +35,7 @@
     width: .9em;
     left: .1em;
     bottom: .05em;
-    background-color: white;
+    background-color: rgb(77, 77, 77);
     -webkit-transition: .4s;
     transition: .4s;
 }

@@ -74,7 +74,10 @@ window.onload = function() {
                 parent.jsce_toggle()
             }
         }
-        if(e.code === 'Escape') parent.jsce_toggle();
+        if(e.code === 'Escape') {
+            window.parent.document.getElementById('jsce-floating-btn').style.display = document.getElementById('floating-btn-switch').checked ? 'block' : 'none';
+            parent.jsce_toggle()
+        };
     }
 
     document.addEventListener('keydown', keydown);
