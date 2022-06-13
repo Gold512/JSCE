@@ -209,6 +209,9 @@ function displaySearchRes(s) {
                     div.dataset.type = typeof v;
                     val_container.dataset.type = typeof v;
                     originalValue = v;
+
+                    // Update search result database
+                    objectIndex.search[[...Array.from(div.parentElement.children)].indexOf(div)][1] = v;
                 } catch(e) {
                     throw e;
                     alert(e);
