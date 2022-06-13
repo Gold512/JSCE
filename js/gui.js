@@ -1,4 +1,3 @@
-
 /**
  * 
  * @param {HTMLElement} e input that is being read 
@@ -37,11 +36,20 @@ function parseRange(n) {
     return Math.pow(2, parseInt(n))
 }
 let currentFocused = null;
+let pages;
+
+function openPage(page) {
+    for(let i = 0, k = Object.keys(pages); i < k.length; i++) {
+        if(k[i] === page) {
+            pages[k[i]].style.display = 'block';
+        } else {
+            pages[k[i]].style.display = 'none';
+        }
+    }
+}
+
 window.onload = function() {
-    
-
-
-    let pages = {
+    pages = {
         main: document.getElementById('main-page'),
         search: document.getElementById('search-page'),
         storage: document.getElementById('storage-page'),
@@ -49,16 +57,6 @@ window.onload = function() {
     }
 
     openPage('main')
-
-    function openPage(page) {
-        for(let i = 0, k = Object.keys(pages); i < k.length; i++) {
-            if(k[i] === page) {
-                pages[k[i]].style.display = 'block';
-            } else {
-                pages[k[i]].style.display = 'none';
-            }
-        }
-    }
 
     document.getElementById('page').addEventListener('click', function(e) {
         if(!e.target.dataset.value) return;
@@ -71,11 +69,21 @@ window.onload = function() {
         if(window.parent == window) return;
         if(e.getModifierState("Alt") && e.getModifierState("Control") && e.getModifierState("Shift")) {
             if(e.code === 'KeyC') {
+                let shown = window.parent.document.getElementById('jsce-container');
                 parent.jsce_toggle()
+                let btn = document.getElementById('jsce-floating-btn') || window.parent.document.getElementById('jsce-floating-btn');
+                if(btn) {
+                    if(shown && shown.style.display == 'none') {
+                        btn.style.display = 'none';
+                    } else {
+                        btn.style.display = document.getElementById('floating-btn-switch').checked ? 'block' : 'none';
+                    }
+                }
             }
         }
         if(e.code === 'Escape') {
-            window.parent.document.getElementById('jsce-floating-btn').style.display = document.getElementById('floating-btn-switch').checked ? 'block' : 'none';
+            let btn = window.parent.document.getElementById('jsce-floating-btn');
+            if(btn) btn.style.display = document.getElementById('floating-btn-switch').checked ? 'block' : 'none';
             parent.jsce_toggle()
         };
     }
@@ -89,7 +97,28 @@ window.onload = function() {
     })
 
     mainPageInit();
-    searchPageInit()
+    searchPageInit();
+
+    let url = new URL(window.parent.location.href);
+    if(url.searchParams.get('jsce') != null) {
+        // reload triggered by jsce 
+        url.searchParams.delete('jsce');
+        window.parent.history.pushState({path:url.toString()},'', url.toString());
+        
+        // now restore jsce to the previous state 
+        let data = JSON.parse(window.parent.sessionStorage.getItem('jsce-data'));
+        displaySearchRes(data.search);
+        let locationSelector = document.getElementById('search-location');
+        locationSelector.dataset.value = data.location;
+        locationSelector.innerText = data.location;
+        window.parent.sessionStorage.removeItem('jsce-data');
+
+        if(url.searchParams.get('jsce') == '2') {
+            document.getElementById('open-on-reload').checked = true;
+        }
+
+        openPage('search');
+    }
 }
 
 /* When the user clicks on the button,

@@ -10,7 +10,7 @@ function getCallstack(n = 0) {
 }
 
 class IndexedObj {
-    constructor(obj, path) {
+    constructor(obj = {}, path = '') {
         this.obj = obj;
         this.search = [];
         this.update = () => { return this.obj; };
@@ -19,31 +19,50 @@ class IndexedObj {
 
     set(path, value) {
         this.update('read');
-        path = path.split('.');
-        let variable = this.obj;
-        for(let i = 0; i < path.length-1; i++) {
-            if(typeof variable[path[i]] != 'object') return new Error("variable at path'" + path.slice(0, i).join('.') + "' is not object'")
-            variable = variable[path[i]];
-        }
-        variable[path[path.length-1]] = value;
+        let success = this._set(path, value);
         this.update('write');
-        return true;
+        return success;
     }
     
     get(path) {
         this.update('read');
+        return this._get(path);
+    }
+
+    export() {
+        return {
+            search: this.search,
+
+        }
+    }
+
+    _get(path) {
         path = path.split('.'); 
         let variable = this.obj;
         for(let i = 0; i < path.length; i++) {
             variable = variable[path[i]];
             if(variable === undefined) return undefined;
         }
-        return variable;
+        return variable
+    }
+
+    _set(path, value) {
+        path = path.split('.');
+        let variable = this.obj;
+        for(let i = 0; i < path.length-1; i++) {
+            if(typeof variable[path[i]] != 'object') return false;
+            // throw new Error("variable at path'" + path.slice(0, i).join('.') + "' is not object'")
+            variable = variable[path[i]];
+        }
+        variable[path[path.length-1]] = value;
+        return true;
     }
     
     /**
      * Attach observer to an object, overwriting any previous observers 
      * Note: not compatible with this.update function currently
+     * Note 2: use with caution, may cause issues with pre-existing references to the object 
+     * Note 3: Apply observers recursivly to the ROOT elements to prevent issues with references (only objects can be referenced)
      * @param {String[]} observers list of observers to add ('read', 'write')
      * @param {String} path 
      * @param {Function} callback 
@@ -136,9 +155,9 @@ class IndexedObj {
         let res = [];        
 
         for(let i = 0; i < this.search.length; i++) {
-            let v = this.get(this.search[i][0])
+            let v = this._get(this.search[i][0])
             if(v === undefined) continue;
-            if(operation(v, value) && type[typeof v]) {
+            if(type[typeof v] && operation(v, value, this.search[i][1])) {
                 this.search[i][1] = v; // ensure that the result list is accurate
                 res.push(this.search[i]);
             } 
@@ -182,8 +201,10 @@ class IndexedObj {
 
         let fn;
 
-        // a is the actual value
-        // b is the input value
+        // Params:
+        // 1 - is the actual value
+        // 2 - is the input value
+        // 3 - is the old value (for refine operations)
         switch(search.operation) {
             case '===':
                 fn = (a, b) => a === b;
@@ -193,11 +214,37 @@ class IndexedObj {
                 fn = (a, b) => a == b;
             break;
 
+            // Change operators a[0] is the old value, a[1] is the new value 
+
+            // Changed (can only be used in refine) [symbol /\]
+            case '/\\':
+                fn = (a, _, c) => a != c;
+            break;
+
+            // increased 
+            case '/\\>':
+                fn = (a, _, c) => a > c;
+            break;
+
+            // decreased 
+            case '/\\<':
+                fn = (a, _, c) => a < c;
+            break;
+
             case '+-':
                 fn = (a, b) => Math.abs(a - b[0]) < b[1];
             break;
 
+            // Accurate to n significant figures
+            // b[0] = value, b[1] = significant figures 
+            // The significant figures can be inferred by the amount of trailing zeros 
+            // ALL INPUTS ARE NUMBERS 
             case '~~':
+                function fixTo(n, places) {
+                    places = Math.pow(10, places)
+                    return Math.round((n + Number.EPSILON) * places) / places;
+                }
+                fn = (a, b) => fixTo(a, b[1]) == fixTo(b[0], b[1])
             break;
 
             case '~':

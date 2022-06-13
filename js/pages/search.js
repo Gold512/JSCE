@@ -4,6 +4,7 @@ function searchPageInit() {
     let operation = document.getElementById('search-operation');
     let opBtn = document.getElementById('search-op-btn');
     let searchBox = document.getElementById('search-value');
+    let locationSelector = document.getElementById('search-location');
 
     allBtn.addEventListener('input', e => {
         for(let i = 0; i < boxes.length; i++) {
@@ -26,9 +27,37 @@ function searchPageInit() {
         }
     })
 
+    let locationValueToIndex = {
+        'global': 0,
+        'localStorage': 1,
+        'sessionStorage': 2
+    }
+
+    let indexToLocation = ['global', 'localStorage', 'sessionStorage']
+
     searchBox.addEventListener('keydown', e => {
-        if(e.code !== 'Enter') return
-        newSearch();
+        switch(e.code) {
+            case 'Enter': 
+                newSearch();
+            break;
+            // Change location with arrow keys 
+            case 'ArrowUp': {
+                let x = locationValueToIndex[locationSelector.dataset.value];
+                x = x-1 < 0 ? indexToLocation.length-1 : x-1
+                x = indexToLocation[x];
+                locationSelector.dataset.value = x;
+                locationSelector.children[0].innerText = x;
+            }
+            break;
+            case 'ArrowDown': {
+                let x = locationValueToIndex[locationSelector.dataset.value];
+                x = x+1 > indexToLocation.length-1 ? 0 : x+1;
+                x = indexToLocation[x];
+                locationSelector.dataset.value = x;
+                locationSelector.children[0].innerText = x;
+            }
+            break;
+        }
     })
 }
 
@@ -332,4 +361,23 @@ function change_search_op(e) {
             document.getElementById('search-value').style.width = '40%';
         break;
     }
+}
+
+function saveAndReload() {
+    // save search data and reload 
+    let win = window.parent;
+    objectIndex.update('read');
+    win.sessionStorage.setItem('jsce-data', JSON.stringify({
+        search: objectIndex.search,
+        location: objectIndex.location,
+        openOnReload: document.getElementById('open-on-reload').checked
+    }));
+    let url = new URL(win.location.href);
+    if(document.getElementById('open-on-reload').checked) {
+        url.searchParams.set('jsce', '2'); // tell the program to initiate jsce
+    } else {
+        url.searchParams.set('jsce', '2'); // tell the program to init and show jsce 
+    }
+    
+    win.location.replace(url);
 }

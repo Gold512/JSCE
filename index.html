@@ -50,6 +50,13 @@
                             <span class="switch-slider round"></span>
                         </label>
                     </div>
+
+                    <div style="padding-left: .5em; margin-top: .5em;">Open on Reload
+                        <label class="switch">
+                            <input type="checkbox" id="open-on-reload">
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
                 </div>
                 <div class="box">
                     <div class="box-header">
@@ -179,6 +186,7 @@
                     </div>
                     <button onclick="newSearch()">New Search</button>
                     <button onclick="refine()">Refine</button>
+                    <button onclick="saveAndReload()">Save & Reload</button>
                 </div>
 
                 <div class="box dark-scrollbar" id="search-res">

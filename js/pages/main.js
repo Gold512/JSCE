@@ -135,6 +135,10 @@ function mainPageInit() {
 }
 
 function init_floating_btn() {
+    const vw = Math.min(window.parent.document.documentElement.clientWidth || 0, window.parent.innerWidth || 0);
+    const vh = Math.min(window.parent.document.documentElement.clientHeight || 0, window.parent.innerHeight || 0);
+    const btnSize = 20;
+
     let el = document.createElement('div');
     el.style.position = 'fixed';
     el.style.zIndex = '99999999999';
@@ -142,15 +146,22 @@ function init_floating_btn() {
     el.style.backgroundColor = '#000';
     el.style.left = '10px';
     el.style.top = '10px';
-    el.style.width = '20px';
-    el.style.height = '20px';
-    el.style.borderRadius = '10px';
+    el.style.width = `${btnSize}px`;
+    el.style.height = `${btnSize}px`;
+    el.style.fontSize = '15px';
+    el.style.borderRadius = `${btnSize/2}px`;
     el.style.userSelect = 'none';
     el.id = 'jsce-floating-btn';
     el.style.display = 'none';
     el.innerText = '🔧';  
 
     let moved = false;
+
+    let xOffset = 10, yOffset = 10;
+    let startX, startY;
+
+    // Max mouse movement to still be considered a click 
+    const maxClickOffset = 3;
 
     function updatePos(ev) {
         moved = true;
@@ -162,8 +173,10 @@ function init_floating_btn() {
             window.requestAnimationFrame(() => {
                 // Subtract width and height so that the element will
                 // be in the middle 
-                el.style.left = (ev.clientX - 10) + 'px';
-                el.style.top = (ev.clientY - 10) + 'px';
+                let x = ev.clientX - xOffset;
+                let y = ev.clientY - yOffset;
+                el.style.left = (x < 0 ? 0 : (x+btnSize) > vw ? vw-btnSize : x) + 'px';
+                el.style.top = (y < 0 ? 0 : (y+btnSize) > vh ? vh-btnSize : y) + 'px';
             });
             ticking = true;
         }
@@ -177,21 +190,30 @@ function init_floating_btn() {
         window.parent.document.removeEventListener('mouseup', mouseUp)
         window.parent.document.removeEventListener('mousemove', updatePos)
 
-        if(moved) {
+        if(moved && Math.abs(ev.clientX - startX) >= maxClickOffset && Math.abs(ev.clientY - startY) >= maxClickOffset) {
             moved = false;
             return;
         };
-        
+
+        // Move button back since it was a click 
+        el.style.left = (startX - xOffset) + 'px';
+        el.style.top = (startY - yOffset) + 'px';
         let element = window.parent.document.getElementById('jsce-container');
         element.style.display = 'block';
         el.style.display = 'none';
         element.children[0].focus();
     }
 
-    el.addEventListener('mousedown', () => {
+    el.addEventListener('mousedown', e => {
         el.style.transform = 'scale(1.2)';
         el.style.opacity = '1';
         el.style.pointerEvents = 'none';
+
+        let rect = e.currentTarget.getBoundingClientRect();
+        xOffset = e.clientX - rect.left; //x position within the element.
+        yOffset = e.clientY - rect.top;  //y position within the element.
+        startX = e.clientX
+        startY = e.clientY
 
         window.parent.document.addEventListener('mousemove', updatePos)
         window.parent.document.addEventListener('mouseup', mouseUp)
