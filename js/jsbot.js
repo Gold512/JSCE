@@ -17,38 +17,7 @@ class JSBot {
             
             if(typeof key === 'object' && key.code == 'click') {
                 this.id = setInterval(() => {
-                    let event = new Event('click', {bubbles: true});
-                    Object.defineProperties(event, {
-                        'target': {
-                            get: () => this.target
-                        },
-                        'currentTarget': {
-                            get: () => this.target
-                        },
-                        'clientX': {
-                            get: () => key.x
-                        },
-                        'clientY': {
-                            get: () => key.y
-                        },
-
-                        'altKey': {
-                            get: () => false
-                        },
-                        'ctrlKey': {
-                            get: () => false
-                        },
-                        'metaKey': {
-                            get: () => false
-                        },
-                        'shiftKey': {
-                            get: () => false
-                        }
-                    });
-
-                    event.getModifierState = () => false;
-                    
-                    this.target.dispatchEvent(event);
+                    this._click(this.target, key)
                 }, interval);
                 return
             }
@@ -93,61 +62,15 @@ class JSBot {
             } else {
                 ev = Object.assign(ev, key);
             }
+
+            ev.bubbles = this.bubbles;
+            ev.repeats = this.repeats;
             
-
             this.id = setInterval(() => {
-                let eventTypes = ['keydown', 'keyup', 'keypress']
-                if(this.target instanceof HTMLInputElement) eventTypes.push('input');
-                for(let i = 0; i < eventTypes.length; i++) {
-                    let event = new Event(eventTypes[i], {bubbles: this.bubbles, repeats: this.repeats});
-                    Object.defineProperties(event, {
-                        'keyCode': {
-                            get: () => ev.keyCode
-                        },
-                        'code': {
-                            get: () => ev.code
-                        },
-                        'which': {
-                            get: () => ev.keyCode
-                        },
-                        'key': {
-                            get: () => ev.key
-                        },
-                        'target': {
-                            get: () => this.target
-                        },
-                        'currentTarget': {
-                            get: () => this.target
-                        },
-                        
-                        'altKey': {
-                            get: () => ev.altKey
-                        },
-                        'ctrlKey': {
-                            get: () => ev.ctrlKey
-                        },
-                        'metaKey': {
-                            get: () => ev.metaKey
-                        },
-                        'shiftKey': {
-                            get: () => ev.shiftKey
-                        }
-                    
-                    });
-
-                    event.getModifierState = (state) => {
-                        switch (state) {
-                            case "Alt": return ev.altKey
-                            case "Ctrl": return ev.ctrlKey
-                            case "Shift": return ev.shiftKey
-                            case "Meta": return ev.metaKey
-                        }
-                    }
-                    
-                    this.target.dispatchEvent(event);
-                }
+                this._press(this.target, ev);
             }, interval)
         }
+        JSBot._global.push(this);
     }
 
     /**
@@ -193,13 +116,17 @@ class JSBot {
         overlay.style.transition = 'all .12s ease-in'
         this.document.documentElement.appendChild(overlay);
 
+        let removeEvents = () => {
+            this.document.removeEventListener('click', onclick);
+            this.document.removeEventListener('mouseover', mouseover);
+            this.document.removeEventListener('scroll', scroll);
+            this.document.removeEventListener('keypress', keypress);
+        }
+
         let onclick = e => {
             overlay.remove();
-
             this.target = e.target;
-            this.document.removeEventListener('click', onclick)
-            this.document.removeEventListener('mouseover', mouseover)
-            this.document.removeEventListener('scroll', scroll)
+            removeEvents()
             resolve(e);
         }
 
@@ -236,20 +163,25 @@ class JSBot {
             
                 ticking = true;
             }
+        }
 
-            
+        let keypress = e => {
+            if(e.code != 'Enter') return;
+            overlay.remove();
+            this.target = this.document.elementFromPoint(this.lastPos[0], this.lastPos[1]);
+            removeEvents();
+            resolve({target: this.target, clientX:this.lastPos[0], clientY: this.lastPos[1]});
         }
 
         try {
             this.document.addEventListener('click', onclick)
             this.document.addEventListener('scroll', scroll)
+            this.document.addEventListener('keypress', keypress)
 
             let el = this.document.querySelector('body')
             el.addEventListener('mouseover', mouseover)
         } catch(e) {
-            this.document.removeEventListener('click', onclick)
-            this.document.removeEventListener('mouseover', mouseover)
-            this.document.removeEventListener('scroll', scroll)
+            removeEvents()
             reject(e);
         }
 
@@ -266,4 +198,119 @@ class JSBot {
         this.active = false;
         clearTimeout(this.id);
     }
+
+    _click(element, key) {
+        let eventList = ['mousedown', 'mouseup', 'click'];
+        key.button = key.button == undefined ? 0 : key.button;
+        
+        for(let i = 0; i < eventList.length; i++) {
+            let event = new Event(eventList[i], {bubbles: true});
+            Object.defineProperties(event, {
+                'target': {
+                    get: () => element
+                },
+                'currentTarget': {
+                    get: () => element
+                },
+                'clientX': {
+                    get: () => key.x
+                },
+                'clientY': {
+                    get: () => key.y
+                },
+
+                'button': {
+                    get: () => key.button
+                },
+                'altKey': {
+                    get: () => false
+                },
+                'ctrlKey': {
+                    get: () => false
+                },
+                'metaKey': {
+                    get: () => false
+                },
+                'shiftKey': {
+                    get: () => false
+                },
+                'getModifierState': {
+                    value: () => false
+                }
+            });
+            
+            element.dispatchEvent(event);
+        }
+    }
+
+    _press(element, ev) {
+        let eventTypes = ['keydown', 'keyup', 'keypress']
+        if(element instanceof HTMLInputElement) eventTypes.push('input');
+        for(let i = 0; i < eventTypes.length; i++) {
+            let event = new Event(eventTypes[i], {bubbles: ev.bubbles, repeats: ev.repeats});
+            Object.defineProperties(event, {
+                'keyCode': {
+                    get: () => ev.keyCode
+                },
+                'code': {
+                    get: () => ev.code
+                },
+                'which': {
+                    get: () => ev.keyCode
+                },
+                'key': {
+                    get: () => ev.key
+                },
+                'target': {
+                    get: () => element
+                },
+                'currentTarget': {
+                    get: () => element
+                },
+                
+                'altKey': {
+                    get: () => ev.altKey
+                },
+                'ctrlKey': {
+                    get: () => ev.ctrlKey
+                },
+                'metaKey': {
+                    get: () => ev.metaKey
+                },
+                'shiftKey': {
+                    get: () => ev.shiftKey
+                }
+            
+            });
+
+            event.getModifierState = (state) => {
+                switch (state) {
+                    case "Alt": return ev.altKey
+                    case "Ctrl": return ev.ctrlKey
+                    case "Shift": return ev.shiftKey
+                    case "Meta": return ev.metaKey
+                }
+            }
+            
+            element.dispatchEvent(event);
+        }
+    }
+
+    _type(element, text, delay) {
+        !function f(i) {
+            this._press(element, text[i]);
+            element.value += text[i];
+            if(i < text.length) setTimeout(f, delay, i + 1);
+        }(0)
+    }
+
+    static _global = [];
+}
+
+// Sample function for action list iteration
+function iterate(actions) {
+    let a = this;
+    !function f(i) {
+        a.id = setTimeout(f, actions[i].delay, i + 1)
+    }(0)
 }

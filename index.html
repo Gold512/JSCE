@@ -57,6 +57,19 @@
                             <span class="switch-slider round"></span>
                         </label>
                     </div>
+
+                    <div style="padding-left: .5em; margin-top: .5em;">Freeze javascript
+                        <input id="freeze-duration" style="margin-right:.3em" type="number" autocomplete="off">
+                        <button id="freeze-start">Freeze</button><br>
+                        
+                    </div>
+                        <div style="padding-left: .5em; margin-top: .5em;">
+                        Right click floating button to freeze
+                        <label class="switch">
+                            <input type="checkbox" id="floating-btn-freeze">
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
                 </div>
                 <div class="box">
                     <div class="box-header">
@@ -120,9 +133,9 @@
                         <div class="dropdown" data-value="global" id="search-location">
                             <button onclick="open_dropdown(this)" class="dropbtn">global</button>
                             <div class="dropdown-content">
-                                <button onclick="radio_set(this)" data-value="global">global</a>
-                                <button onclick="radio_set(this)" data-value="localStorage">localStorage</a>
-                                <button onclick="radio_set(this)" data-value="sessionStorage">sessionStorage</a>
+                                <button onclick="radio_set(this)" data-value="global">global</button>
+                                <button onclick="radio_set(this)" data-value="localStorage">localStorage</button>
+                                <button onclick="radio_set(this)" data-value="sessionStorage">sessionStorage</button>
                             </div>
                         </div>
                     </div>
@@ -186,6 +199,17 @@
                     </div>
                     <button onclick="newSearch()">New Search</button>
                     <button onclick="refine()">Refine</button>
+                    <!--
+                    <span class="field">View 
+                        <div class="dropdown" data-value="list" id="search-view">
+                            <button onclick="open_dropdown(this)" class="dropbtn">List</button>
+                            <div class="dropdown-content">
+                                <button onclick="radio_set(this)" data-value="List">List</a>
+                                <button onclick="radio_set(this)" data-value="Tree">Tree</a>
+                            </div>
+                        </div>
+                    </span>
+                    -->
                     <button onclick="saveAndReload()">Save & Reload</button>
                 </div>
 
@@ -217,16 +241,33 @@
                     <div class="dropdown-content">
                         <button onclick="radio_set(this)" data-value="click">Click</button>
                         <button onclick="radio_set(this)" data-value="key">Press Key</button>
+                        <button onclick="radio_set(this)" data-value="multi">Multi</button>
                     </div>
                 </div>
-                <span id="autoclick-key-actions" style="display:none">
+                <span id="autoclick-key-action" style="display:none">
                     <input type="text" placeholder="key" style="margin-left: 3px" autocomplete="off" spellcheck="false" id="autoclick-key">
-                    <input type="checkbox" id="autoclick-key-repeat" checked> Repeats
+                    <input type="checkbox" id="autoclick-key-repeat"> Repeats
                     <input type="checkbox" id="autoclick-key-bubbles" checked> Bubbles
                 </span>
-                <span id="autoclick-click-actions" style="display:none">
-                    <input type="number" placeholder="X" style="margin-left: 3px;"id="autoclick-client-x">
-                    <input type="number" placeholder="Y" style="margin-left: 3px;"id="autoclick-client-y">
+                <span id="autoclick-click-action">
+                    
+                    <div class="dropdown" data-value="0" id="click-button-dropdown">
+                        <button onclick="open_dropdown(this)" class="dropbtn" id="click-button">Left</button>
+                        <div class="dropdown-content">
+                            <button onclick="radio_set(this)" data-value="0">Left</button>
+                            <button onclick="radio_set(this)" data-value="1">Middle</button>
+                            <button onclick="radio_set(this)" data-value="2">Right</button>
+                        </div>
+                    </div>
+                    
+                    <div id="autoclick-canvas-action" style="display:none">
+                        <input type="number" placeholder="X" style="margin-left: 3px; width: 5em;"id="autoclick-client-x">
+                        <input type="number" placeholder="Y" style="margin-left: 3px; width: 5em;"id="autoclick-client-y">
+                    </div>
+                </span>
+
+                <span id="autoclick-multi-action" style="display:none">
+                    <button>Configure</button>
                 </span>
             </div>
 

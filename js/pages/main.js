@@ -132,12 +132,25 @@ function mainPageInit() {
             return;
         }
     })
+
+    let freezeInput = document.getElementById('freeze-duration');
+
+    document.getElementById('freeze-start').addEventListener('click', e => {
+        e.currentTarget.innerText = 'Frozen';
+        e.currentTarget.style.backgroundColor = 'rgb(45, 45, 45)';
+        window.parent.postMessage({operation: 'jsce_freeze', time: Number(freezeInput.value)}, '*');
+    })
+
+    
 }
 
 function init_floating_btn() {
     const vw = Math.min(window.parent.document.documentElement.clientWidth || 0, window.parent.innerWidth || 0);
     const vh = Math.min(window.parent.document.documentElement.clientHeight || 0, window.parent.innerHeight || 0);
     const btnSize = 20;
+
+    const freezeOnRightClick = document.getElementById('floating-btn-freeze');
+    const freezeInput = document.getElementById('freeze-duration');
 
     let el = document.createElement('div');
     el.style.position = 'fixed';
@@ -183,6 +196,11 @@ function init_floating_btn() {
     }
 
     function mouseUp(ev) {
+        console.log(ev.button, freezeOnRightClick.checked)
+        if(ev.button == 2 && freezeOnRightClick.checked) {
+            return;
+        }
+
         el.style.opacity = '.5';
         el.style.pointerEvents = '';
         el.style.transform = '';
@@ -204,7 +222,28 @@ function init_floating_btn() {
         element.children[0].focus();
     }
 
+    el.addEventListener("contextmenu", e => {
+        const floatingBtn = window.parent.document.getElementById('jsce-floating-btn');
+
+        e.preventDefault();
+        floatingBtn.innerText = '❄️';
+        el.style.transform = 'scale(1.2)';
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'none';
+        window.parent.postMessage({operation: 'jsce_freeze', time: Number(freezeInput.value), floatingBtn: true}, '*');
+        setTimeout(() => {
+            el.style.opacity = '.5';
+            el.style.pointerEvents = '';
+            floatingBtn.innerText = '🔧';
+            el.style.transform = '';
+        }, 50)
+    });
+
     el.addEventListener('mousedown', e => {
+        if(e.button == 2 && freezeOnRightClick.checked) {
+            return;
+        }
+
         el.style.transform = 'scale(1.2)';
         el.style.opacity = '1';
         el.style.pointerEvents = 'none';
@@ -247,11 +286,21 @@ function createAutoclicker() {
 
         clientX: container.querySelector('#autoclick-client-x'),
         clientY: container.querySelector('#autoclick-client-y'),
+        clickButton: container.querySelector('#click-button')
+    }
+
+    function switchActionMenu(action) {
+        container.querySelector('#autoclick-key-action').style.display = action == 'key' ? 'inline-block' : 'none';
+
+        container.querySelector('#autoclick-canvas-action').style.display = (action == 'click' && autoclicker.target?.tagName == 'CANVAS') ? 'inline-block' : 'none';
+        container.querySelector('#autoclick-click-action').style.display = action == 'click' ? 'inline-block' : 'none';
+
+        container.querySelector('#autoclick-multi-action').style.display = (action == 'multi') ? 'inline-block' : 'none';
     }
 
     autoclick.switch.addEventListener('input', e => {
         if(e.currentTarget.checked) {
-            autoclicker.interval = Number(autoclicker.interval.value);
+            autoclicker.interval = Number(autoclick.interval.value);
             let keyValue;
             try { keyValue = JSON.parse(autoclick.key.dataset.value) } catch(e) {
                 keyValue = autoclick.key.dataset.value;
@@ -266,7 +315,8 @@ function createAutoclicker() {
                 autoclicker.key = {
                     x: x,
                     y: y,
-                    code: 'click'
+                    code: 'click', 
+                    button: Number(autoclick.clickButton.dataset.value)
                 }
             } else {
                 autoclicker.key = 'Click';
@@ -287,8 +337,7 @@ function createAutoclicker() {
             let el = event.target;
             window.parent.jsce_toggle();
             autoclick.elementSelect.value = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.classList.value != '' ? ('.' + [...el.classList].join('.')).replace('.jsce-hover', '') : ''}`;
-            container.querySelector('#autoclick-click-actions').style.display = (autoclick.action.dataset.value == 'click' && autoclicker.target.tagName == 'CANVAS') ? 'inline-block' : 'none';
-
+            switchActionMenu(autoclick.action.dataset.value);
             if(el.tagName == 'CANVAS') {
                 autoclick.clientX.value = event.clientX
                 autoclick.clientY.value = event.clientY
@@ -316,10 +365,7 @@ function createAutoclicker() {
     });
 
     container.querySelector('#autoclick-action .dropdown-content').addEventListener('click', e => {
-        let action = e.currentTarget.parentElement.dataset.value
-    
-        container.querySelector('#autoclick-key-actions').style.display = action == 'key' ? 'inline-block' : 'none';
-        container.querySelector('#autoclick-click-actions').style.display = (action == 'click' && autoclicker.target?.tagName == 'CANVAS') ? 'inline-block' : 'none';
+        switchActionMenu(e.currentTarget.parentElement.dataset.value)
     });
 
     container.querySelector('#close_instance').addEventListener('click', e => {
@@ -330,4 +376,12 @@ function createAutoclicker() {
         // destroy current autoclicker 
         autoclicker = undefined;
     })
+
+    // mouse button selector 
+    // clickButton.querySelector('.dropdown-content').addEventListener('click', ev => {
+    //     if(!ev.target.dataset.value) return;
+// 
+    //     autoclick.clickButton.children[0].innerText = ev.target.innerText;
+    //     autoclick.clickButton.dataset.value = ev.target.dataset.value;
+    // })
 }

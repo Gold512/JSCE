@@ -68,11 +68,14 @@ window.onload = function() {
     function keydown(e) {
         if(window.parent == window) return;
         if(e.getModifierState("Alt") && e.getModifierState("Control") && e.getModifierState("Shift")) {
+            // Note: add this check to the parent window script 
             if(e.code === 'KeyC') {
                 let shown = window.parent.document.getElementById('jsce-container');
                 parent.jsce_toggle()
                 let btn = document.getElementById('jsce-floating-btn') || window.parent.document.getElementById('jsce-floating-btn');
+                console.log(btn)
                 if(btn) {
+                    console.log(shown.style.display)
                     if(shown && shown.style.display == 'none') {
                         btn.style.display = 'none';
                     } else {

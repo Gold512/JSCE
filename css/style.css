@@ -260,3 +260,7 @@
     padding-bottom: 5px;
     border-bottom: 1px solid var(--outline);
 }
+
+#autoclick-container input {
+    font-family: monospace;
+}
