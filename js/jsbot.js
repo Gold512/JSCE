@@ -4,73 +4,11 @@ class JSBot {
         this.document = windowCtx.document;
         this.active = false;
         this.interval = interval;
-        this.target = null;
-        this.key = key;
-        this.bubbles = true;
-        this.repeats = false;
+        
+        // Clicking data 
+        this.targets = [];
+        this.actions = []; // List of actions to perform 
 
-        this._startInterval = (key, interval) => {
-            if(key === 'Click') {
-                this.id = setInterval(() => this.target.click(), interval);
-                return;
-            } 
-            
-            if(typeof key === 'object' && key.code == 'click') {
-                this.id = setInterval(() => {
-                    this._click(this.target, key)
-                }, interval);
-                return
-            }
-
-            let ev = {
-                altKey: false,
-                ctrlKey: false,
-                metaKey: false,
-                shiftKey: false
-            };
-
-            if(typeof key === 'string') {
-                // modifier key detection
-                let keyDict = {
-                    'Space': ' '
-                }
-
-                if(keyDict[key] !== undefined) key = keyDict[key];
-
-                // event.code
-                let keyCodeDict = {
-                    'Enter': 13,
-                    'Backspace': 8,
-                    'ArrowLeft': 37,
-                    'ArrowUp': 38,
-                    'ArrowRight': 39,
-                    'ArrowDown': 40
-                };
-
-                let code = key;
-                if(key.length === 1) {
-                    if(key.match(/^\w$/)) {
-                        code = `Key${key.toUpperCase()}`;
-                    } else if(key.match(/^\d$/)) {
-                        code = `Digit${key}`;
-                    }
-                }
-
-                ev.keyCode = keyCodeDict[key] || key.charCodeAt(0);
-                ev.code = code;
-                ev.key = key;
-            } else {
-                ev = Object.assign(ev, key);
-            }
-
-            ev.bubbles = this.bubbles;
-            ev.repeats = this.repeats;
-            
-            this.id = setInterval(() => {
-                this._press(this.target, ev);
-            }, interval)
-        }
-        JSBot._global.push(this);
     }
 
     /**
@@ -112,8 +50,9 @@ class JSBot {
         overlay.style.position = 'absolute';
         overlay.style.zIndex = '99999999999';
         overlay.style.pointerEvents = 'none';
-        overlay.style.backgroundColor = 'rgba(255, 0, 0, .3)'
-        overlay.style.transition = 'all .12s ease-in'
+        overlay.style.backgroundColor = 'rgba(255, 0, 0, .3)';
+        overlay.style.transition = 'all .12s ease-in';
+        overlay.classList.add('element-select-overlay');
         this.document.documentElement.appendChild(overlay);
 
         let removeEvents = () => {
@@ -199,6 +138,11 @@ class JSBot {
         clearTimeout(this.id);
     }
 
+    newAction(type) {
+        if(!this.constructor[type + 'Event']) throw new Error("Invalid type (can only be click, press or type)")
+        return new this.constructor[type + 'Event'];
+    }
+
     _click(element, key) {
         let eventList = ['mousedown', 'mouseup', 'click'];
         key.button = key.button == undefined ? 0 : key.button;
@@ -243,7 +187,58 @@ class JSBot {
         }
     }
 
-    _press(element, ev) {
+    _press(elements, key) {
+        if(!elements instanceof Array) elements = [elements];
+        for(let i = 0; i < elements.length; i++) {
+            this.__pressKey(elements[i], key);
+        }
+    }
+
+    /**
+     * Type a string (with events triggered)
+     * @param {HTMLElement|HTMLElement[]} elements The html element(s) to click
+     * @param {String} text The text to type into the element(s)
+     * @param {Number} delay The amount of time in milliseconds between each character typed
+     * @returns {Promise} A promise which is resolved when the operation is completed
+     */
+    _type(elements, text, delay) {
+        if(!elements instanceof Array) elements = [elements];
+        let promise = this._promiseFactory();
+
+        !function f(i) {
+            try {
+                for(let j = 0; j < elements.length; j++) {
+                    this.__pressKey(elements[j], text[i]);
+                    if(elements[j].value) elements[j].value += text[i];
+                }
+
+                if(i < text.length) { setTimeout(f, delay, i + 1); }
+                else { promise.resolve(); } // Resolve the promise on the last iteration
+
+            } catch(e) { 
+                promise.reject(e); // Type operation encountered fatal error 
+            }
+        }(0)
+
+        return promise.object;
+    }
+
+    _promiseFactory() {
+        let resolve, reject;
+        let promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return {object: promise, resolve: resolve, reject: reject};
+    }
+
+    /**
+     * An even lower level function handling generation of the common keyboard
+     * Events used by _press and _type functions
+     * @param {HTMLElement} element 
+     * @param {Object} ev Event/key object to use for event 
+     */
+    __pressKey(element, ev) {
         let eventTypes = ['keydown', 'keyup', 'keypress']
         if(element instanceof HTMLInputElement) eventTypes.push('input');
         for(let i = 0; i < eventTypes.length; i++) {
@@ -296,15 +291,54 @@ class JSBot {
         }
     }
 
-    _type(element, text, delay) {
-        !function f(i) {
-            this._press(element, text[i]);
-            element.value += text[i];
-            if(i < text.length) setTimeout(f, delay, i + 1);
-        }(0)
-    }
+    // Helper class for generating click events 
+    static clickEvent = class {
+        constructor() {
+            this.action = 'click';
+            this.button = 0;
 
-    static _global = [];
+            this.altKey = false;
+            this.ctrlKey = false;
+            this.metaKey = false;
+            this.shiftKey = false;
+        }
+
+        setPos = (x, y) => {
+            this.x = x;
+            this.y = y;
+
+            return this;
+        }
+
+        setButton = (button) => {
+            if(typeof button == 'number') {
+                this.button = button;
+                return this;
+            }
+
+            switch(button) {
+                case 'left': 
+                    this.button = 0;
+                    break;
+                
+                case 'middle': 
+                    this.button = 1;
+                    break;
+                
+                case 'right': 
+                    this.button = 2;
+                    break;
+            }
+
+            return this;
+        }
+
+        setModifierState = (key, state = true) => {
+            if(!this[key + 'Key']) throw new Error(`modifier key '${key}' does not exist`);
+            this[key + 'Key'] = state;
+            return this;
+        }
+    }
 }
 
 // Sample function for action list iteration
