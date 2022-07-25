@@ -264,3 +264,22 @@
 #autoclick-container input {
     font-family: monospace;
 }
+
+#packagefile { display: none; }
+.cust-finput-disp { 
+	background: var(--background);
+	border: var(--outline) 1px outset;
+	border-radius: .125em;
+	display: inline-block;
+	cursor: pointer;
+	transform: translateY(-25%);
+}
+
+#selectedpkg {
+	border: var(--outline) 1px solid;
+	background: var(--background);
+	width: 10em;
+	display: inline-block;
+	overflow: hidden;
+    padding-left: 3px;
+}

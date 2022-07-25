@@ -122,6 +122,12 @@ window.onload = function() {
 
         openPage('search');
     }
+
+    let pkginput = document.getElementById('packagefile'), pkgfnamedisp = document.getElementById('selectedpkg');
+
+	pkginput.addEventListener('change', function() {
+		pkgfnamedisp.innerText = pkginput.files[0]?.name || "No File Selected";
+	})
 }
 
 /* When the user clicks on the button,
@@ -139,4 +145,16 @@ function radio_set(e) {
 
 function clear_rnd_calls(e) {
     e.parentElement.children[1].innerHTML = '-- start --';
+}
+
+function runJSFile() {
+	let file = document.getElementById("packagefile").files[0]
+	if(!file) return;
+	(new Blob([file])).text().then(async function(v) {
+		try {
+            eval(v)
+        } catch (e) {
+            alert(e.message);
+        }
+	});
 }

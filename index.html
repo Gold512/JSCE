@@ -59,18 +59,39 @@
                     </div>
 
                     <div style="padding-left: .5em; margin-top: .5em;">Freeze javascript
-                        <input id="freeze-duration" style="margin-right:.3em" type="number" autocomplete="off">
+                        <input id="freeze-duration" style="margin-right:.3em" type="number" autocomplete="off" placeholder="duration (ms)">
                         <button id="freeze-start">Freeze</button><br>
                         
                     </div>
-                        <div style="padding-left: .5em; margin-top: .5em;">
+                    <div style="padding-left: .5em; margin-top: .5em;">
                         Right click floating button to freeze
                         <label class="switch">
                             <input type="checkbox" id="floating-btn-freeze">
                             <span class="switch-slider round"></span>
                         </label>
                     </div>
+
+                    <div style="padding-left: .5em; margin-top: .5em;">
+                        Document content editable
+                        <label class="switch">
+                            <input type="checkbox" id="content-editable-switch">
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
                 </div>
+
+                <div class="box">
+                    <div class="box-header">
+                        Execute JS file
+                    </div>
+                    <label class="custom-file-upload">
+                        <input type="file" id="packagefile" accept=".js" />
+                        <span class="cust-finput-disp">Select File</span> <span id="selectedpkg">No File Selcted</span>
+                        
+                    </label>
+                    <button onclick="runJSFile()" style="transform: translateY(-20%)">Run</button>
+                </div>
+
                 <div class="box">
                     <div class="box-header">
                         Speeder

@@ -30,10 +30,16 @@ function searchPageInit() {
     let locationValueToIndex = {
         'global': 0,
         'localStorage': 1,
-        'sessionStorage': 2
+        'sessionStorage': 2,
+        // 'indexedDB': 3
     }
 
-    let indexToLocation = ['global', 'localStorage', 'sessionStorage']
+    let indexToLocation = [
+        'global', 
+        'localStorage', 
+        'sessionStorage', 
+        // 'indexedDB'
+    ]
 
     searchBox.addEventListener('keydown', e => {
         switch(e.code) {
@@ -266,7 +272,7 @@ function displaySearchRes(s) {
 
 let objectIndex;
 
-function newSearch() {
+async function newSearch() {
     try {
         let location = document.getElementById('search-location').dataset.value;
         let value = document.getElementById('search-value').value;
@@ -304,6 +310,24 @@ function newSearch() {
                     }
                 }
             break;
+            // case 'indexedDB':
+            //     let databases = await indexedDB.databases();
+            //     for(let i = 0; i < databases.length; i++) {
+            //         const {name, version} = databases[i];
+            //         let request = indexedDB.open(name, version);
+            //         request.onsuccess = function() {
+            //             const db = request.result;
+            //             for(let j = 0; j < db.objectStoreNames.length; j++) {
+            //                 let transaction = db.transaction(db.objectStoreNames[j], 'readwrite');
+            //                 let t = transaction.objectStore(db.objectStoreNames[j]).getAll();
+            //                 t.onsuccess = () => {
+            //                     console.log(`${name}.${db.objectStoreNames[j]}`)
+            //                     console.log(t.result)
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     break;
         }
 
         objectIndex = new IndexedObj(root);

@@ -259,6 +259,12 @@ function init_floating_btn() {
     })
 
     window.parent.document.documentElement.appendChild(el);
+
+    let initialState = window.parent.document.documentElement.contentEditable;
+
+    document.addEventListener('content-editable-switch').addEventListener('input', e => {
+        window.parent.document.documentElement.contentEditable = e.currentTarget.checked ? 'true' : initialState; 
+    })
 }
 
 function* IDGenerator() {
