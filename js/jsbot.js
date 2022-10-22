@@ -129,6 +129,7 @@ class JSBot {
 
     start() {
         if(!this.target) throw new Error('no target element set')
+        if(this.active) return;
         this._startInterval(this.key, this.interval);
         this.active = true;
     }
@@ -136,6 +137,18 @@ class JSBot {
     stop() {
         this.active = false;
         clearTimeout(this.id);
+    }
+
+    _startInterval(key, interval) {
+        this.id = setInterval(() => {
+            if(key.code == 'click') {
+                this._click(this.target, key);
+            } else {
+                key.bubbles = this.bubbles;
+                key.repeat = this.repeats;
+                this.__pressKey(this.target, key);
+            }
+        }, interval)
     }
 
     newAction(type) {

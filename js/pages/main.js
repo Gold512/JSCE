@@ -292,7 +292,8 @@ function createAutoclicker() {
 
         clientX: container.querySelector('#autoclick-client-x'),
         clientY: container.querySelector('#autoclick-client-y'),
-        clickButton: container.querySelector('#click-button')
+        clickButton: container.querySelector('#click-button'),
+        clickButtonDropdown: container.querySelector('#click-button-dropdown')
     }
 
     function switchActionMenu(action) {
@@ -322,7 +323,7 @@ function createAutoclicker() {
                     x: x,
                     y: y,
                     code: 'click', 
-                    button: Number(autoclick.clickButton.dataset.value)
+                    button: Number(autoclick.clickButtonDropdown.dataset.value)
                 }
             } else {
                 autoclicker.key = 'Click';

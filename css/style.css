@@ -16,10 +16,38 @@
     --background-hover: rgb(56, 56, 56);
 }
 
-.page {
+body { height: 100vh; }
+
+.main {
     width: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-flow: column;
     height: 100%;
 }
+
+.segmented-control#page {
+    flex: 0 1 auto;
+
+}
+
+.page {
+    flex: 1 1 auto;
+}
+
+/* 
+.page {
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+} */
+
+
 
 #rng-input {
     width: 80%;
@@ -170,7 +198,6 @@
 
 #search-res {
     overflow-y: auto;
-    max-height: 75vh;
 }
 
 #search-res > div:hover {
@@ -242,6 +269,10 @@
     border-radius: 5px;
 }
 
+#search-params {
+    margin-bottom: 0;
+}
+
 .search-box div[data-type="string"]:nth-child(2)::before{ color: yellow }
 .search-box div[data-type="number"]:nth-child(2)::before { color: mediumaquamarine }
 .search-box div[data-type="boolean"]:nth-child(2)::before { color: rgb(108, 108, 255) }
@@ -282,4 +313,25 @@
 	display: inline-block;
 	overflow: hidden;
     padding-left: 3px;
+}
+
+/* dynamic sizing */
+.dynamic-sizing {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+.dynamic-sizing .fixed {
+    flex: 0 1 auto;
+    /* The above is shorthand for:
+    flex-grow: 0,
+    flex-shrink: 1,
+    flex-basis: auto
+    */
+}
+
+.dynamic-sizing .dynamic {
+    /* flex: 1 1 auto; */
+    flex: 1 0 0; /* allows overflow-y: auto to work */
 }

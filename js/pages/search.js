@@ -48,6 +48,7 @@ function searchPageInit() {
             break;
             // Change location with arrow keys 
             case 'ArrowUp': {
+                e.preventDefault();
                 let x = locationValueToIndex[locationSelector.dataset.value];
                 x = x-1 < 0 ? indexToLocation.length-1 : x-1
                 x = indexToLocation[x];
@@ -56,6 +57,7 @@ function searchPageInit() {
             }
             break;
             case 'ArrowDown': {
+                e.preventDefault();
                 let x = locationValueToIndex[locationSelector.dataset.value];
                 x = x+1 > indexToLocation.length-1 ? 0 : x+1;
                 x = indexToLocation[x];
@@ -142,8 +144,37 @@ function autoTypeCast(v) {
     return v;
 }
 
-function formatPath(str) {
-    return str.replaceAll(/.(\d+)(?!\w)/g, '[$1]')
+function formatPath(s) {
+    //return str.replaceAll(/(?<!\\)\.(\d+)(?!\w)/g, '[$1]')
+
+    let res = [''];
+    let idx = 0;
+    
+    for(let i = 0; i < s.length; i++) {
+        if(s[i] == '\\') {
+            i++;
+            res[idx] += s[i];
+            continue;
+        }
+
+        if(s[i] == '.') {
+            idx++;
+            res[idx] = '';
+            continue;
+        }
+
+        res[idx] += s[i];
+    }
+
+    for(let i = 1; i < res.length; i++) {
+        if(res[i].match(/^\d+$/)) {
+            res[i] = `<span style="color:white">[</span><span style="color:rgb(117, 255, 172)">${res[i]}</span><span style="color:white">]</span>`;
+        } else {
+            res[i] = '<span style="color:white">.</span>' + res[i];
+        }
+    }
+
+    return `<span style="color:rgb(117, 214, 255)">${res.join('')}</span>`;
 }
 
 function displaySearchRes(s) {
@@ -155,6 +186,7 @@ function displaySearchRes(s) {
         div.style.margin = '0 5px';
         div.innerText = s.length + ' results';
         output.appendChild(div);
+        output.classList.remove('dynamic'); // output only same size as output text
         return;
     }
 
@@ -250,7 +282,7 @@ function displaySearchRes(s) {
         div.dataset.path = e[0];
         div.dataset.type = typeof e[1];
 
-        path.innerText = formatPath(e[0]);
+        path.innerHTML = formatPath(e[0]);
 
         let val_container = document.createElement('div');
         val_container.dataset.type = typeof e[1];
@@ -268,6 +300,8 @@ function displaySearchRes(s) {
         div.appendChild(val_container);
         output.appendChild(div);
     }
+    output.classList.add('dynamic'); // TAKE UP ALL AVAILABLE SPACE
+
 }
 
 let objectIndex;

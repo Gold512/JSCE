@@ -37,7 +37,7 @@ class IndexedObj {
     }
 
     _get(path) {
-        path = path.split('.'); 
+        path = this._splitPath(path, '.'); 
         let variable = this.obj;
         for(let i = 0; i < path.length; i++) {
             variable = variable[path[i]];
@@ -47,7 +47,7 @@ class IndexedObj {
     }
 
     _set(path, value) {
-        path = path.split('.');
+        path = this._splitPath(path, '.');
         let variable = this.obj;
         for(let i = 0; i < path.length-1; i++) {
             if(typeof variable[path[i]] != 'object') return false;
@@ -56,6 +56,29 @@ class IndexedObj {
         }
         variable[path[path.length-1]] = value;
         return true;
+    }
+
+    _splitPath(s) {
+        let res = [''];
+        let idx = 0;
+    
+        for(let i = 0; i < s.length; i++) {
+            if(s[i] == '\\') {
+                i++;
+                res[idx] += s[i];
+                continue;
+            }
+
+            if(s[i] == '.') {
+                idx++;
+                res[idx] = '';
+                continue;
+            }
+
+            res[idx] += s[i];
+        }
+
+        return res;
     }
     
     /**
@@ -206,6 +229,10 @@ class IndexedObj {
         // 2 - is the input value
         // 3 - is the old value (for refine operations)
         switch(search.operation) {
+            case '*':
+                fn = () => true;
+            break;
+
             case '===':
                 fn = (a, b) => a === b;
             break;
@@ -290,9 +317,9 @@ class IndexedObj {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
             if(typeof v === 'object' && !(v instanceof Function)) {
-                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i], depth+1));
+                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.'), depth+1));
             } else if(type[typeof v] && operation(v, value)) {
-                res.push([path + (path !== '' ? '.' : '') + k[i], v]);
+                res.push([path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.'), v]);
             }
         }
     
@@ -300,7 +327,7 @@ class IndexedObj {
     }
 
     _getRef(path) {
-        path = path.split('.');
+        path = this._splitPath(path, '.');
         let variable = this.obj;
         for(let i = 0; i < path.length-1; i++) {
             if(typeof variable[path[i]] != 'object') return new Error("variable at path'" + path.slice(0, i).join('.') + "' is not object'")
