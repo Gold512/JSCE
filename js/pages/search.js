@@ -88,7 +88,7 @@ function autoOperation(input) {
 
         // assign m to new match and check if it is true
     } else {
-        m = input.match(/^(\?|\/|\+\-)(.+)/)
+        m = input.match(/^(\?|\/|\*|\.|\+\-)(.+)/)
         if(m) {
             operation = m[1];
             value = m[2]
@@ -186,7 +186,7 @@ function displaySearchRes(s) {
         div.style.margin = '0 5px';
         div.innerText = s.length + ' results';
         output.appendChild(div);
-        output.classList.remove('dynamic'); // output only same size as output text
+        output.classList.remove('dynamic-scrollable'); // output only same size as output text
         return;
     }
 
@@ -300,7 +300,7 @@ function displaySearchRes(s) {
         div.appendChild(val_container);
         output.appendChild(div);
     }
-    output.classList.add('dynamic'); // TAKE UP ALL AVAILABLE SPACE
+    output.classList.add('dynamic-scrollable'); // TAKE UP ALL AVAILABLE SPACE
 
 }
 
@@ -403,6 +403,20 @@ function refine() {
     let value = document.getElementById('search-value').value;
     let operation = document.getElementById('search-operation').dataset.value;
     let type = getTypes();
+
+    switch (operation) {
+        case '~':
+        case '+-':
+            value = [Number(value), Number(value2)];
+        break;
+    }
+    
+    if(operation == 'auto') {
+        let v = autoOperation(value)
+        value = v.value;
+        operation = v.operation;
+    }
+
     objectIndex.refine({value: value, operation: operation, type: type});
     displaySearchRes(objectIndex.search);
 }

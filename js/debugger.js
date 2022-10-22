@@ -220,7 +220,7 @@ class IndexedObj {
 
     _parseSearch(search) {
         let value = search.value;
-        if(isNaN(Number(value))) value = Number(value);
+        if(!isNaN(Number(value))) value = Number(value);
 
         let fn;
 
@@ -233,6 +233,11 @@ class IndexedObj {
                 fn = () => true;
             break;
 
+            // path includes
+            case '.':
+                fn = (_0, b, _1, path) => path.includes(b);
+            break;
+            
             case '===':
                 fn = (a, b) => a === b;
             break;
@@ -316,10 +321,11 @@ class IndexedObj {
         for(let i = 0; i < k.length; i++) {
             let v = variable[k[i]];
             if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
+            const newPath = path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.');
             if(typeof v === 'object' && !(v instanceof Function)) {
-                res.push(...this._searchData(v, search, path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.'), depth+1));
-            } else if(type[typeof v] && operation(v, value)) {
-                res.push([path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.'), v]);
+                res.push(...this._searchData(v, search, newPath, depth+1));
+            } else if(type[typeof v] && operation(v, value, undefined, newPath)) {
+                res.push([newPath, v]);
             }
         }
     

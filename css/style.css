@@ -332,6 +332,10 @@ body { height: 100vh; }
 }
 
 .dynamic-sizing .dynamic {
+    flex: 1 1 auto;
+}
+
+.dynamic-sizing .dynamic-scrollable {
     /* flex: 1 1 auto; */
     flex: 1 0 0; /* allows overflow-y: auto to work */
 }
