@@ -26,7 +26,7 @@ function parserngData(e) {
 function checkSpeedRange(speeder) {
     if(Number(speeder.textbox.value) < 0) {
         speeder.textbox.classList.add('error')
-        return
+        return true;
     }
 
     speeder.textbox.classList.remove('error');
@@ -102,12 +102,8 @@ window.onload = function() {
     mainPageInit();
     searchPageInit();
 
-    let url = new URL(window.parent.location.href);
-    if(url.searchParams.get('jsce') != null) {
-        // reload triggered by jsce 
-        url.searchParams.delete('jsce');
-        window.parent.history.pushState({path:url.toString()},'', url.toString());
-        
+    let startupState = window.parent.sessionStorage.getItem('jsce-startup');
+    if(startupState != null) {
         // now restore jsce to the previous state 
         let data = JSON.parse(window.parent.sessionStorage.getItem('jsce-data'));
         displaySearchRes(data.search);
@@ -116,11 +112,50 @@ window.onload = function() {
         locationSelector.innerText = data.location;
         window.parent.sessionStorage.removeItem('jsce-data');
 
-        if(url.searchParams.get('jsce') == '2') {
+        if(startupState == '2') {
             document.getElementById('open-on-reload').checked = true;
         }
 
+        window.parent.sessionStorage.removeItem('jsce-startup');
+
         openPage('search');
+
+        // setup object index from reload
+        let location = data.location;
+        switch(location) {  
+            case 'global':
+                root = window.parent;
+            break;
+            case 'localStorage':
+                root = parseStorage(window.parent.localStorage);
+                read = function() {
+                    return parseStorage(window.parent.localStorage);
+                }
+                write = function(o) {
+                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                        window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                    }
+                }
+            break;
+            case 'sessionStorage':
+                root = parseStorage(window.parent.sessionStorage);
+                read = function() {
+                    return parseStorage(window.parent.sessionStorage);
+                }
+                write = function(o) {
+                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
+                        window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                    }
+                }
+            break;
+        }
+
+        objectIndex = new IndexedObj(root);
+        objectIndex.location = location;
+        objectIndex.search = data.search;
+        if(location === 'sessionStorage' || location === 'localStorage') {
+            objectIndex.onUpdate(read, write);
+        }
     }
 
     let pkginput = document.getElementById('packagefile'), pkgfnamedisp = document.getElementById('selectedpkg');

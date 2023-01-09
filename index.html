@@ -131,10 +131,9 @@
                     </div>
                 </div>
 
-                <div class="box">
+                <div class="box" style="margin-bottom: 8em;">
                     <div class="box-header">
                         Autoclicker
-                        
                         <button style="transform: translateY(-15%)" onclick="createAutoclicker()">+</button>
                     </div>
 
@@ -198,7 +197,7 @@
                             <div>
 
                                 Auto mode will automatically detect the operation<br>
-                                The operator will always be first except for range==1, >3 etc<br>
+                                The operator will always be first (ie. ==1, >3 etc) except for range<br>
                                 however for a range like &lt;= x &lt;= b the expression will be a~b<br>
                                 regex match and string includes will have to be manually selected however<br>
                                 note that regex match and string includes may have performance issues
@@ -221,6 +220,8 @@
                         </div>
                         <button onclick="newSearch()">New Search</button>
                         <button onclick="refine()">Refine</button>
+                        <button onclick="refreshSearchResults()">Refresh</button>
+                        <button onclick="editSelectedResults()">Edit Selection</button>
                         <!--
                         <span class="field">View 
                             <div class="dropdown" data-value="list" id="search-view">
@@ -232,7 +233,7 @@
                             </div>
                         </span>
                         -->
-                        <button onclick="saveAndReload()">Save & Reload</button>
+                        <button onclick="saveAndReload()" style="margin-left: .5em">Save & Reload</button>
                     </div>
                         <div class="box dark-scrollbar" id="search-res" style="overflow-y: auto">
                             <div style="text-align: center;margin: 0 5px;">No search results yet, press new search to start a new search</div>

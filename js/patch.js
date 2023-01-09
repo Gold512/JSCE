@@ -3,28 +3,66 @@ class Speeder {
         this.original = {
             timeout:setTimeout,
             interval:setInterval,
-            animationFrame:requestAnimationFrame
+            animationFrame:requestAnimationFrame,
+            cancelAnimationFrame:cancelAnimationFrame
         }
 
         let {
             timeout, interval, animationFrame
         } = this.original;
 
-        let start = performance.now();
+
+        this.speed = 1;
 
         let ctx = (function* g() {
-            while(true) {
-                let speed = yield null;
+            let speed = 1;
+            let start = win.document.timeline.currentTime || win.performance.now();
+            let prevTime = win.document.timeline.currentTime || win.performance.now();
 
-                win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
-                win.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
-                win.requestAnimationFrame = function(callback) {
-                    return animationFrame(t => {
-                        let elapsedTime = (t - start);
-                        start += elapsedTime*speed
-                        callback(start); 
-                    })
+            let changeFramerate = false;
+            let fps = null;
+            let _frameInterval;
+            while(true) {
+                let input = yield null;
+
+                if(typeof input?.speed === 'number') {
+                    speed = input.speed;
+                    continue;
                 }
+
+                if(typeof input?.changeFramerate === 'boolean') {
+                    changeFramerate = input.changeFramerate;
+                    continue;
+                }
+                
+                if(input === true) {
+                    win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
+                    win.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
+
+                    if(changeFramerate) {
+                        // if fps is set then use it else scale the fps based on speed
+                        _frameInterval = fps ? (1 / fps) : (1000 / 60 / speed);
+                        
+                        win.requestAnimationFrame = callback => {
+                            return setTimeout(t => {
+                                
+                            }, _frameInterval);
+                        }
+
+                        // patch cancelAnimationFrame so it cancels the call to requestAnimationFrame
+                    }
+
+                    win.requestAnimationFrame = callback => {
+                        return animationFrame(t => {
+                            let elapsedTime = (t - start);
+                            start = t;
+                            prevTime += elapsedTime * speed;
+                            callback(prevTime); 
+                        })
+                    }
+                }
+
+                
             }
         })();
 
@@ -32,21 +70,30 @@ class Speeder {
         ctx.next();
 
         this.ctx = ctx;
+        this.win = win;
     }
 
     enable() {
-        this.ctx.next(this.speed)
+        this.ctx.next({speed:this.speed})
+        this.ctx.next(true);
     }
 
     disable() {
-        win.setTimeout = this.original.timeout;
-        win.setInterval = this.original.interval;
-        win.requestAnimationFrame = this.original.animationFrame;
+        this.win.setTimeout = this.original.timeout;
+        this.win.setInterval = this.original.interval;
+        this.win.requestAnimationFrame = this.original.animationFrame;
     }
 
     setSpeed(speed) {
         this.speed = speed;
-        this.ctx.next(speed)
+        this.ctx.next({speed})
+    }
+
+    /** 
+     * change framerate of requestAnimationFrame
+     */
+    setFramerate(bool) {
+        this.ctx.next({changeFramerate:bool});
     }
 }
 

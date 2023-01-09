@@ -165,10 +165,15 @@ class IndexedObj {
      *  @arg {String|Number|Boolean} search.value value to search for 
      *  @arg {Object} search.type types to search for
      *  @arg {String} search.operation operation to compare values with 
+     *  @arg {Boolean} search.unsafe use if the object is not garunteed to be JSON stringifyable
      */
     newSearch(search) {
         this.update('read');
-        this.search = this._searchData(this.obj, this._parseSearch(search));
+        if(search.unsafe) {
+            this.search = this._unsafeSearchData(this.obj, this._parseSearch(search));
+        } else {
+            this.search = this._searchData(this.obj, this._parseSearch(search));
+        }
     }
 
     refine(search) {
@@ -314,15 +319,25 @@ class IndexedObj {
         return {value: value, operation: fn, type: search.type};
     }
 
+    /**
+     * Search pre-sanitized data like parsed JSON
+     * @param {*} variable 
+     * @param {*} search 
+     * @param {*} path 
+     * @param {*} depth 
+     * @returns 
+     */
     _searchData(variable, search, path = '', depth=0) {
-        if(depth == 100) return [];
         let {value, type, operation} = search;
         let k = Object.keys(variable), res = [];
+
         for(let i = 0; i < k.length; i++) {
             let v = variable[k[i]];
-            if(variable === v || v == null || v == undefined || v === window || v === self || this._isNative(v)) continue;
+            if((v === null) || (v === undefined)) continue;
+            
             const newPath = path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.');
-            if(typeof v === 'object' && !(v instanceof Function)) {
+
+            if(typeof v === 'object') {
                 res.push(...this._searchData(v, search, newPath, depth+1));
             } else if(type[typeof v] && operation(v, value, undefined, newPath)) {
                 res.push([newPath, v]);
@@ -330,6 +345,39 @@ class IndexedObj {
         }
     
         return res;
+    }
+
+    /**
+     * Similar to searchData but works for direct object references, may be slower
+     * - handles functions 
+     * - checks for cylic references
+     */
+    _unsafeSearchData(variable, search, path = '', depth) {
+        let {value, type, operation} = search;
+        let processed = new Set();
+        let isNative = this._isNative;
+        return searchFn(variable, path, depth);
+
+        function searchFn(variable, path, depth) {
+            let k = Object.keys(variable), res = [];
+
+            for (let i = 0; i < k.length; i++) {
+                let v = variable[k[i]];
+                if ((v === null) || (v === undefined) || isNative(v) || (v === window) || (v === window.parent))
+                    continue;
+
+                const newPath = path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.');
+
+                if (typeof v === 'object' && !(v instanceof Function) && !processed.has(v)) {
+                    processed.add(v);
+                    res.push(...searchFn(v, newPath, depth + 1));
+                } else if (type[typeof v] && operation(v, value, undefined, newPath)) {
+                    res.push([newPath, v]);
+                }
+            }
+
+            return res;
+        }
     }
 
     _getRef(path) {

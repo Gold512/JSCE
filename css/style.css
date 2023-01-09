@@ -7,7 +7,7 @@
     padding: 0;
     margin: 0;
     position: absolute;
-    z-index: 9999999999;
+    z-index: 999999;
     background: rgba(0, 0, 0, 1);
     color: #fff;
 
@@ -198,10 +198,7 @@ body { height: 100vh; }
 
 #search-res {
     overflow-y: auto;
-}
-
-#search-res > div:hover {
-    background: rgb(24, 24, 24);
+    user-select: none;
 }
 
 .search-box:not(:last-child) {
@@ -214,7 +211,7 @@ body { height: 100vh; }
     padding-right: .4em;
     display: block;
     border-top: 5px solid transparent;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
     cursor: pointer;
     font-family:monospace;
 }
@@ -232,6 +229,7 @@ body { height: 100vh; }
     text-align: left;
     display: inline-block;
 	left: 3px;
+    transform: translateY(.125rem);
 }
 
 .search-box div:nth-child(2) {
@@ -257,7 +255,6 @@ body { height: 100vh; }
 
 #search-res > div.search-box:hover div[data-type]:nth-child(2)::before {
     background: rgb(45, 45, 45);
-    
 }
 
 .search-box div[data-type]:nth-child(2)::before {
@@ -277,6 +274,37 @@ body { height: 100vh; }
 .search-box div[data-type="number"]:nth-child(2)::before { color: mediumaquamarine }
 .search-box div[data-type="boolean"]:nth-child(2)::before { color: rgb(108, 108, 255) }
 .search-box div[data-type="function"]:nth-child(2)::before { color: mediumpurple }
+
+.search-box div:has(input[type="checkbox"]) span {
+    display: inline-block;
+    transform: translateY(-.1875rem);
+}
+
+.search-box div[data-type="function"] span {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    max-height: 1.2em;
+    transform: translateY(0.1875rem);
+}
+
+.search-box div:where([data-type="boolean"], [data-type="function"])::before {
+    transform: translateY(-0.125rem);
+}
+
+.search-box.selected {
+    background: rgb(0, 22, 51);
+}
+
+.search-box:hover {
+    background: rgb(24, 24, 24);
+}
+
+.search-box.selected:hover {
+    background: rgb(0, 40, 92)
+}
 
 .list-item {
     transition: margin-bottom .2s ease-in-out
@@ -339,3 +367,50 @@ body { height: 100vh; }
     /* flex: 1 1 auto; */
     flex: 1 0 0; /* allows overflow-y: auto to work */
 }
+
+#edit-prompt-container {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: 9999999;
+    background-color:rgba(0, 0, 0, 0.781);
+}
+
+#edit-prompt-container > div {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    display: block;
+    width: 50%;
+    background-color: black;
+    margin: 1em;
+    box-shadow:rgba(0, 0, 0, 1) 0px 0px 0px 10px;
+}
+
+#edit-prompt-container .search-val-string {
+    padding-top: 5px;
+}
+
+#edit-prompt-container .search-val-string::after {
+    content: attr(data-type);
+    display: inline-block;
+    margin-left: 1em;
+    font-family: monospace;
+    background:rgb(56, 56, 56);
+    padding: 2px .3em;
+    border-radius: 5px;
+    color: white;
+    text-transform: capitalize;
+}   
+
+#edit-prompt-container input {
+    font-family: monospace;
+    min-width: 12em;
+    width: 40%;
+}
+
+#edit-prompt-container .search-val-string[data-type="string"]::after{ color: yellow }
+#edit-prompt-container .search-val-string[data-type="number"]::after { color: mediumaquamarine }
+#edit-prompt-container .search-val-string[data-type="boolean"]::after { color: rgb(108, 108, 255) }
+#edit-prompt-container .search-val-string[data-type="function"]::after { color: mediumpurple }

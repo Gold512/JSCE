@@ -87,6 +87,8 @@ function autoOperation(input) {
         operation = m[1];
 
         // assign m to new match and check if it is true
+    } else if(input.match(/^\/\\(?:>|<)?/)) {
+        operation = input.match(/^\/\\(?:>|<)?/)[0]
     } else {
         m = input.match(/^(\?|\/|\*|\.|\+\-)(.+)/)
         if(m) {
@@ -177,6 +179,101 @@ function formatPath(s) {
     return `<span style="color:rgb(117, 214, 255)">${res.join('')}</span>`;
 }
 
+function refreshSearchResults() {
+    let elements = document.querySelector('#search-res').children;
+
+    for(let i = 0; i < elements.length; i++) {
+        const e = elements[i];
+        let value = objectIndex.get(e.dataset.path);
+        e.querySelector('div[data-type]').dataset.type = typeof value;
+        e.querySelector('div[data-type] > span').innerText = value;
+    }
+}
+
+async function editSelectedResults() {
+    let elements = document.querySelectorAll('#search-res > .selected');
+    if(elements.length === 0) {
+        alert('No results selected');
+        return;
+    }
+
+    let input = await editSelectedPrompt('Editing ' + elements.length + ' results');
+    if(input === null || (input === '')) return;
+    input = autoTypeCast(input);
+
+    let errs = 0;
+    for(let i = 0; i < elements.length; i++) {
+        const e = elements[i];
+        e.querySelector('div[data-type]').dataset.type = typeof input;
+        try{
+            objectIndex.set(e.dataset.path, input);
+            e.querySelector('div[data-type] > span').innerText = input;
+        } catch(e) { errs++; }
+    }
+
+    if(errs > 1) alert(`Modified ${elements.length} items (${errs} Errors)`)
+}
+
+async function editSelectedPrompt(title) {
+    let resolve, promise = new Promise(res => { resolve = res });
+    
+    let container = document.createElement('div');
+    container.id = 'edit-prompt-container';
+
+    function removePrompt() {
+        container.remove();
+    }
+
+    container.addEventListener('click', ev => {
+        if(ev.currentTarget !== ev.target) return;
+        removePrompt();
+        resolve(null);
+    });
+
+    let box = document.createElement('div');
+    box.classList.add('box');
+    container.appendChild(box);
+    
+    let titleElement = document.createElement('div');
+    titleElement.classList.add('box-header');
+    titleElement.innerText = title;
+    box.appendChild(titleElement);
+
+    let val_container = document.createElement('div');
+    val_container.classList.add('search-val-string');
+    val_container.dataset.type = 'undefined';
+    box.appendChild(val_container);
+
+    let input = document.createElement('input');
+    input.type = 'text';
+    input.style.margin = 'auto';
+    input.addEventListener('input', e => {
+        let v = input.value.trim();
+        if(v == '') {
+            val_container.dataset.type = 'undefined';
+            return;
+        }
+        v = autoTypeCast(v);
+        
+        val_container.dataset.type = typeof v;
+    });
+
+    input.addEventListener('keydown', e => {
+        if(e.code != 'Enter') return;
+
+        removePrompt();
+        resolve(autoTypeCast(input.value));
+    });
+
+
+    val_container.appendChild(input);
+
+    document.body.appendChild(container);
+    
+    input.focus()
+    return promise;
+}
+
 function displaySearchRes(s) {
     let output = document.getElementById('search-res');
     output.innerHTML = '';
@@ -190,13 +287,97 @@ function displaySearchRes(s) {
         return;
     }
 
+    let selectedElements = new Set();
+    let prevSelection = null;
+    let prevEndState = null;
+    let selectionWithCtrl = null;
+
+    function deSelectElements() {
+        for(let i of selectedElements.values()) {
+            selectedElements.delete(i);
+            output.children[i].classList.remove('selected');
+        }
+    }
+
     for(let i = 0; i < s.length; i++) {
         const e = s[i];
         let div = document.createElement('div');
         div.classList.add('search-box');
-        div.addEventListener('click', function(e) {
+        div.addEventListener('click', e => {
+            const alt = e.getModifierState('Alt') || e.getModifierState('Shift');
+            const ctrl = e.getModifierState('Control');
+            console.log(alt, ctrl)
+            if(alt || ctrl) {
+                e.preventDefault();
+
+                // multi-select code 
+
+                const idx = Number(e.currentTarget.dataset.index);
+                const endState = !e.currentTarget.classList.contains('selected');
+
+                const setOperation = endState ? 'add' : 'delete';
+                const classOperation = endState ? 'add' : 'remove';
+
+                if(ctrl && alt && selectionWithCtrl !== null) {
+                    const min = Math.min(idx, selectionWithCtrl);
+                    const max = Math.max(idx, selectionWithCtrl);
+
+                    const setOperation = prevEndState ? 'add' : 'delete';
+                    const classOperation = prevEndState ? 'add' : 'remove';
+
+                    for(let i = min; i <= max; i++) {
+                        selectedElements[setOperation](i);
+                        output.children[i].classList[classOperation]('selected');
+                    }
+
+                    selectionWithCtrl = null;
+                } else if((selectedElements.size === 0) || ctrl) {
+                    selectedElements[setOperation](idx);
+                    console.log(output.children[idx], idx)
+                    output.children[idx].classList[classOperation]('selected');
+
+                    prevSelection = idx;
+                    prevEndState = endState;
+                    if(ctrl && alt) selectionWithCtrl = idx;
+                } else if(!ctrl && (prevSelection !== null)) {
+                    // multi selection without ctrl
+                    // select from prevSelection to this selection
+
+                    const min = Math.min(idx, prevSelection);
+                    const max = Math.max(idx, prevSelection);
+
+                    deSelectElements();
+
+                    for(let i = min; i <= max; i++) {
+                        output.children[i].classList.add('selected');
+                        selectedElements.add(i);
+                    }
+                }
+                // else if(prevSelection !== null) {
+                //     // ctrl selection 
+                //     // dont de-select
+
+                //     const min = Math.min(idx, prevSelection);
+                //     const max = Math.max(idx, prevSelection);
+
+                //     const setOperation = prevEndState ? 'add' : 'delete';
+                //     const classOperation = prevEndState ? 'add' : 'remove';
+
+                //     for(let i = min; i <= max; i++) {
+                //         selectedElements[setOperation](i);
+                //         output.children[i].classList[classOperation]('selected');
+                //     }
+                // }
+
+                return;
+            }
+
             if(div.dataset.active === 'true') return;
-            val_container.classList.remove('search-val-string')
+            
+            // just de-select all on normal click 
+            deSelectElements();
+
+            val_container.classList.remove('search-val-string');
 
             let el = document.createElement('input');
             let originalValue = val.innerText;
@@ -211,12 +392,17 @@ function displaySearchRes(s) {
                 val = document.createElement('span');
                 val_container.innerText = '';
 
+                if(div.dataset.type === 'boolean') {
+                    let bool = originalValue === 'true' ? true : false;
+                    boolEdit = createBooleanCheckbox(bool, val, div);
+                    val_container.appendChild(boolEdit);
+                }
+
                 val.innerText = originalValue;
                 val_container.appendChild(val);
 
                 val_container.dataset.type = div.dataset.type;
                 div.dataset.active = null;
-
             
                 if(div.dataset.type === 'string') val_container.classList.add('search-val-string');
             })
@@ -240,8 +426,13 @@ function displaySearchRes(s) {
                     let parent = e.currentTarget.parentElement;
                     val = document.createElement('span');
                     val.innerText = v;
-
                     parent.innerHTML = '';
+
+                    if(typeof v === 'boolean') {
+                        boolEdit = createBooleanCheckbox(v, val, div);
+                        parent.appendChild(boolEdit);
+                    }
+
                     parent.appendChild(val);
 
                     div.dataset.type = typeof v;
@@ -249,7 +440,9 @@ function displaySearchRes(s) {
                     originalValue = v;
 
                     // Update search result database
-                    objectIndex.search[[...Array.from(div.parentElement.children)].indexOf(div)][1] = v;
+                    objectIndex.search[Number(div.dataset.index)][1] = v;
+
+                    
                 } catch(e) {
                     throw e;
                     alert(e);
@@ -273,7 +466,7 @@ function displaySearchRes(s) {
             let v = originalValue;
             v = autoTypeCast(v);
 
-            val_container.dataset.type = typeof v;
+            val_container.dataset.type = v ? typeof v : 'undefined';
 
             el.focus();
         })
@@ -281,6 +474,7 @@ function displaySearchRes(s) {
         let path = document.createElement('div');
         div.dataset.path = e[0];
         div.dataset.type = typeof e[1];
+        div.dataset.index = i;
 
         path.innerHTML = formatPath(e[0]);
 
@@ -292,8 +486,19 @@ function displaySearchRes(s) {
             val_container.classList.remove('search-val-string')
         }
 
+        let boolEdit = null;
+
+        
+
         let val = document.createElement('span');
         val.innerText = e[1];
+
+        // checkbox for quick boolean edit
+        if(div.dataset.type === 'boolean') {
+            boolEdit = createBooleanCheckbox(e[1], val, div);
+            val_container.appendChild(boolEdit)
+        }
+        
         val_container.appendChild(val);
 
         div.appendChild(path);
@@ -302,6 +507,26 @@ function displaySearchRes(s) {
     }
     output.classList.add('dynamic-scrollable'); // TAKE UP ALL AVAILABLE SPACE
 
+    function createBooleanCheckbox(state, val, div) {
+        let el = document.createElement('input')
+        el.type = 'checkbox';
+        el.classList.add('boolean-checkbox');
+        el.checked = state;
+        el.addEventListener('click', ev => {
+            ev.stopPropagation()
+
+            let path = ev.currentTarget.parentElement.parentElement.dataset.path;
+
+            let v = ev.currentTarget.checked;
+            objectIndex.set(path, v);
+            val.innerText = v;
+
+            // Update search result database
+            objectIndex.search[Number(div.dataset.index)][1] = v;
+        });
+
+        return el;
+    }
 }
 
 let objectIndex;
@@ -366,8 +591,10 @@ async function newSearch() {
 
         objectIndex = new IndexedObj(root);
         objectIndex.location = location;
+        let unsafe = true;
         if(location === 'sessionStorage' || location === 'localStorage') {
-            objectIndex.onUpdate(read, write)
+            objectIndex.onUpdate(read, write);
+            unsafe = false;
         }
 
         
@@ -384,9 +611,10 @@ async function newSearch() {
             operation = v.operation;
         }
         
-        objectIndex.newSearch({value: value, operation: operation, type: type});
+        objectIndex.newSearch({value: value, operation: operation, type: type, unsafe: unsafe});
         displaySearchRes(objectIndex.search);
     } catch(err) {
+        throw err;
         let output = document.getElementById('search-res');
         output.innerHTML = '';
 
@@ -441,18 +669,28 @@ function change_search_op(e) {
 function saveAndReload() {
     // save search data and reload 
     let win = window.parent;
-    objectIndex.update('read');
-    win.sessionStorage.setItem('jsce-data', JSON.stringify({
-        search: objectIndex.search,
-        location: objectIndex.location,
-        openOnReload: document.getElementById('open-on-reload').checked
-    }));
-    let url = new URL(win.location.href);
-    if(document.getElementById('open-on-reload').checked) {
-        url.searchParams.set('jsce', '2'); // tell the program to initiate jsce
-    } else {
-        url.searchParams.set('jsce', '2'); // tell the program to init and show jsce 
-    }
     
-    win.location.replace(url);
+    if(objectIndex !== undefined) {
+        objectIndex.update('read');
+        win.sessionStorage.setItem('jsce-data', JSON.stringify({
+            search: objectIndex.search,
+            location: objectIndex.location,
+            openOnReload: document.getElementById('open-on-reload').checked
+        }));
+    } else {
+        win.sessionStorage.setItem('jsce-data', JSON.stringify({
+            openOnReload: document.getElementById('open-on-reload').checked
+        }));
+    }
+
+    let state = '';
+
+    if(document.getElementById('open-on-reload').checked) {
+        state = '1'; // tell the program to initiate jsce only
+    } else {
+        state = '2'; // tell the program to init and show jsce 
+    }
+
+    win.sessionStorage.setItem('jsce-startup', state);
+    win.location.reload();
 }

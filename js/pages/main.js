@@ -19,14 +19,14 @@ function mainPageInit() {
         textbox: document.getElementById('opacity-textbox')
     }
 
-    let autoclick = {
-        switch: document.getElementById('autoclick-switch'),
-        action: document.getElementById('autoclick-action'),
-        key: document.getElementById('autoclick-key'),
-        interval: document.getElementById('autoclick-interval'),
-        elementSelect: document.getElementById('autoclick-element-select'),
-        bubbles: document.getElementById('autoclick-key-bubbles')
-    }
+    // let autoclick = {
+    //     switch: document.getElementById('autoclick-switch'),
+    //     action: document.getElementById('autoclick-action'),
+    //     key: document.getElementById('autoclick-key'),
+    //     interval: document.getElementById('autoclick-interval'),
+    //     elementSelect: document.getElementById('autoclick-element-select'),
+    //     bubbles: document.getElementById('autoclick-key-bubbles')
+    // }
 
     let output = document.getElementById('random-callstack-disp');
 
@@ -83,19 +83,16 @@ function mainPageInit() {
 
     speeder.slider.addEventListener('input',  e => {
         speeder.textbox.value = parseRange(e.currentTarget.value);
-
-        if(!checkSpeedRange(speeder)) return;
+        if(checkSpeedRange(speeder)) return;
 
         speed.setSpeed(Number(speeder.textbox.value));
     });
 
     speeder.textbox.addEventListener('input', e => {
         speeder.slider.value = e.currentTarget.value;
-
-        if(!checkSpeedRange(speeder)) return;
+        if(checkSpeedRange(speeder)) return;
 
         speed.setSpeed(Number(speeder.textbox.value));
-        
     });
 
     speeder.switch.addEventListener('input', e => {

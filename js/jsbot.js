@@ -157,7 +157,7 @@ class JSBot {
     }
 
     _click(element, key) {
-        let eventList = ['mousedown', 'mouseup', 'click'];
+        let eventList = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click'];
         key.button = key.button == undefined ? 0 : key.button;
         
         for(let i = 0; i < eventList.length; i++) {

@@ -21,7 +21,9 @@
 
     <p>"Document.keydown: "</p>
     <p id="document-keydown"></p>
-    
+
+    Time elapsed: <span id="timecounter">NaN</span> ms/tick
+<br><br>    
     <script>
     function myFunction(event) {
         let unicode= event.code;
@@ -29,7 +31,24 @@
     }
     document.addEventListener("keydown", e => {
         document.getElementById("document-keydown").innerHTML = event.code;
-    })
+    });
+
+    const timecounter = document.getElementById("timecounter");
+    let start = performance.now();
+    !function frame(t) {
+        
+        let elapsedTime = 0;
+        if(!start) {
+            start = t;
+        } else {
+            elapsedTime = t - start;
+            start = t;
+        }
+        const timePassed = Math.round(elapsedTime * 10) / 10;
+        timecounter.innerText = timePassed;
+        window.requestAnimationFrame(frame)
+    }();
+
     </script>
     <canvas onclick="showCoords(event)" style="background: rgb(70, 70, 70); border: solid 1px #aaa"></canvas>
 
