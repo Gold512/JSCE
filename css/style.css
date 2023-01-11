@@ -414,3 +414,11 @@ body { height: 100vh; }
 #edit-prompt-container .search-val-string[data-type="number"]::after { color: mediumaquamarine }
 #edit-prompt-container .search-val-string[data-type="boolean"]::after { color: rgb(108, 108, 255) }
 #edit-prompt-container .search-val-string[data-type="function"]::after { color: mediumpurple }
+
+#clear-storage {
+    width: 8em;
+}
+
+#clear-storage[data-confirm]:not([data-confirm='']) {
+    color: red;
+}

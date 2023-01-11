@@ -106,10 +106,7 @@ window.onload = function() {
     if(startupState != null) {
         // now restore jsce to the previous state 
         let data = JSON.parse(window.parent.sessionStorage.getItem('jsce-data'));
-        displaySearchRes(data.search);
-        let locationSelector = document.getElementById('search-location');
-        locationSelector.dataset.value = data.location;
-        locationSelector.innerText = data.location;
+        if(data.search) displaySearchRes(data.search);
         window.parent.sessionStorage.removeItem('jsce-data');
 
         if(startupState == '2') {
@@ -119,9 +116,17 @@ window.onload = function() {
         window.parent.sessionStorage.removeItem('jsce-startup');
 
         openPage('search');
+        document.getElementById('sc-1-1-2').checked = true;
 
         // setup object index from reload
         let location = data.location;
+        if(!location) return;
+
+        // update location control
+        let locationSelector = document.getElementById('search-location');
+        locationSelector.dataset.value = location;
+        locationSelector.querySelector('button').innerText = location;
+
         switch(location) {  
             case 'global':
                 root = window.parent;

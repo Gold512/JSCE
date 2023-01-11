@@ -5,6 +5,7 @@ function searchPageInit() {
     let opBtn = document.getElementById('search-op-btn');
     let searchBox = document.getElementById('search-value');
     let locationSelector = document.getElementById('search-location');
+    let clearStorageBtn = document.getElementById('clear-storage');
 
     allBtn.addEventListener('input', e => {
         for(let i = 0; i < boxes.length; i++) {
@@ -66,7 +67,24 @@ function searchPageInit() {
             }
             break;
         }
-    })
+    });
+
+    clearStorageBtn.addEventListener('click', ev => {
+        let self = ev.currentTarget;
+        if(self.dataset.confirm) {
+            clearAllStorage();
+            window.parent.location.reload();
+            return;
+        }
+
+        let originalText = self.innerText;
+        self.innerText = 'Confirm';
+
+        self.dataset.confirm = setTimeout(self => {
+            self.dataset.confirm = '';
+            self.innerText = originalText;
+        }, 2000, self);
+    });
 }
 
 function autoOperation(input) {
@@ -181,10 +199,11 @@ function formatPath(s) {
 
 function refreshSearchResults() {
     let elements = document.querySelector('#search-res').children;
+    objectIndex.update('read');
 
     for(let i = 0; i < elements.length; i++) {
         const e = elements[i];
-        let value = objectIndex.get(e.dataset.path);
+        let value = objectIndex._get(e.dataset.path);
         e.querySelector('div[data-type]').dataset.type = typeof value;
         e.querySelector('div[data-type] > span').innerText = value;
     }
@@ -202,14 +221,17 @@ async function editSelectedResults() {
     input = autoTypeCast(input);
 
     let errs = 0;
+    objectIndex.update('read')
     for(let i = 0; i < elements.length; i++) {
         const e = elements[i];
         e.querySelector('div[data-type]').dataset.type = typeof input;
         try{
-            objectIndex.set(e.dataset.path, input);
+            objectIndex._set(e.dataset.path, input);
+            objectIndex.search[Number(e.dataset.index)][1] = input;
             e.querySelector('div[data-type] > span').innerText = input;
         } catch(e) { errs++; }
     }
+    objectIndex.update('write');
 
     if(errs > 1) alert(`Modified ${elements.length} items (${errs} Errors)`)
 }
@@ -260,11 +282,10 @@ async function editSelectedPrompt(title) {
 
     input.addEventListener('keydown', e => {
         if(e.code != 'Enter') return;
-
+        let v = input.value;
         removePrompt();
-        resolve(autoTypeCast(input.value));
+        resolve(v);
     });
-
 
     val_container.appendChild(input);
 
@@ -272,6 +293,12 @@ async function editSelectedPrompt(title) {
     
     input.focus()
     return promise;
+}
+
+function clearAllStorage() {
+    let win = window.parent;
+    win.localStorage.clear();
+    win.sessionStorage.clear();
 }
 
 function displaySearchRes(s) {
@@ -333,7 +360,6 @@ function displaySearchRes(s) {
                     selectionWithCtrl = null;
                 } else if((selectedElements.size === 0) || ctrl) {
                     selectedElements[setOperation](idx);
-                    console.log(output.children[idx], idx)
                     output.children[idx].classList[classOperation]('selected');
 
                     prevSelection = idx;
