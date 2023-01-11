@@ -8,8 +8,10 @@
     border: rgb(83, 83, 83) 1px solid;
     padding-left: 0.5em;
 }
+
+/* ▾ */
 .dropbtn::after{
-    content:"▾";
+    content:"\25BE";
     padding-left: 0.3em;
 }
 

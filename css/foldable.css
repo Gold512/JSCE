@@ -13,12 +13,17 @@
     transition-duration: .2s;
     color: white;
 }
+
+/* ▾ */
 .foldable > button::before {
-    content: "▾"
+    content: "\25BE"
 }
+
+/* ▴ */
 .foldable > button.show::before {
-    content: "▴"
+    content: "\25B4"
 }
+
 .foldable > button ~ div {
     display: none;
 }
