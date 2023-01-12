@@ -389,3 +389,11 @@ function createAutoclicker() {
     //     autoclick.clickButton.dataset.value = ev.target.dataset.value;
     // })
 }
+
+function attemptUpdate() {
+    if(window.parent.jsce_update) {
+        window.parent.jsce_update();
+    } else {
+        alert('Please update userscript at https://github.com/Gold512/JSCE/blob/main/ext.js')
+    }
+}

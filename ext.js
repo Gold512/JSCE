@@ -6,11 +6,15 @@
 // @author       Gold512
 // @match        *://*/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
-// @grant        none
+// @grant GM_setValue
+// @grant GM_getValue
+// @grant unsafeWindow
 // ==/UserScript==
 
 (function() {
     'use strict';
+    let window = unsafeWindow;
+
     let initialised = false;
     let frame;
 
@@ -32,7 +36,12 @@
     }
 
     async function init() {
-        let html = await getgit('Gold512','JSCE','jsce.min.html');
+        let html = GM_getValue('jsce', null);
+        if(html === null) {
+            html = await getgit('Gold512','JSCE','jsce.min.html');
+            GM_setValue('jsce', html);
+        }
+
         let el = document.createElement('div');
         el.setAttribute('id', 'jsce-container');
         el.style.display = 'none';
@@ -72,6 +81,12 @@
         } else {
             el.style.display = 'none'
         }
+    }
+
+    window.jsce_update = async function() {
+        let html = await getgit('Gold512','JSCE','jsce.min.html');
+        GM_setValue('jsce', html);
+        frame.srcdoc = html;
     }
 
     async function keydown(e) {

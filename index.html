@@ -58,25 +58,16 @@
                         </label>
                     </div>
 
-                    <div style="padding-left: .5em; margin-top: .5em;">Freeze javascript
-                        <input id="freeze-duration" style="margin-right:.3em" type="number" autocomplete="off" placeholder="duration (ms)">
-                        <button id="freeze-start">Freeze</button><br>
-                        
-                    </div>
-                    <div style="padding-left: .5em; margin-top: .5em;">
-                        Right click floating button to freeze
-                        <label class="switch">
-                            <input type="checkbox" id="floating-btn-freeze">
-                            <span class="switch-slider round"></span>
-                        </label>
-                    </div>
-
                     <div style="padding-left: .5em; margin-top: .5em;">
                         Document content editable
                         <label class="switch">
                             <input type="checkbox" id="content-editable-switch">
                             <span class="switch-slider round"></span>
                         </label>
+                    </div>
+
+                    <div style="padding-left: .5em; margin-top: .5em;">
+                        <button onclick="attemptUpdate()">Update</button>
                     </div>
                 </div>
 
@@ -90,6 +81,25 @@
                         
                     </label>
                     <button onclick="runJSFile()" style="transform: translateY(-20%)">Run</button>
+                </div>
+
+                <div class="box">
+                    <div class="box-header">
+                        Freeze Page
+                    </div>
+
+                    <div style="padding-left: .5em; margin-top: .5em;">Duration
+                        <input id="freeze-duration" style="margin-right:.3em" type="number" autocomplete="off" placeholder="duration (ms)">
+                        <button id="freeze-start">Freeze</button><br>
+                        
+                    </div>
+                    <div style="padding-left: .5em; margin-top: .5em;">
+                        Right click floating button to freeze
+                        <label class="switch">
+                            <input type="checkbox" id="floating-btn-freeze">
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="box">
