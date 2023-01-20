@@ -4,7 +4,12 @@ class Speeder {
             timeout:setTimeout,
             interval:setInterval,
             animationFrame:requestAnimationFrame,
-            cancelAnimationFrame:cancelAnimationFrame
+            cancelAnimationFrame:cancelAnimationFrame,
+
+            // these functions may be contextual to their parent object
+            // use function.call() to execute them
+            date: Date.now,
+            performance: performance.now
         }
 
         let {
@@ -18,6 +23,12 @@ class Speeder {
             let speed = 1;
             let start = win.document.timeline.currentTime || win.performance.now();
             let prevTime = win.document.timeline.currentTime || win.performance.now();
+
+            let startDate = this.original.date.call(win.Date);
+            let prevDate = this.original.date.call(win.Date);
+            
+            let startPerfNow = this.original.performance.call(win.performance);
+            let prevPerfNow = this.original.performance.call(win.performance);
 
             let changeFramerate = false;
             let fps = null;
@@ -60,6 +71,24 @@ class Speeder {
                             callback(prevTime); 
                         })
                     }
+
+                    win.Date.now = () => {
+                        let realDate = this.original.date.call(win.Date)
+                        let elapsed = (realDate - startDate) * speed;
+                        
+                        startDate = realDate;
+                        prevDate += elapsed;
+                        return Math.floor(prevDate);
+                    }
+
+                    win.performance.now = () => {
+                        let realPerfNow = this.original.performance.call(win.performance);
+                        let elapsed = (realPerfNow - startPerfNow) * speed;
+
+                        startPerfNow = realPerfNow;
+                        prevPerfNow += elapsed;
+                        return prevPerfNow;
+                    }
                 }
 
                 
@@ -82,6 +111,8 @@ class Speeder {
         this.win.setTimeout = this.original.timeout;
         this.win.setInterval = this.original.interval;
         this.win.requestAnimationFrame = this.original.animationFrame;
+        this.win.Date.now = this.original.date;
+        this.win.performance.now = this.performance;
     }
 
     setSpeed(speed) {
