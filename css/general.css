@@ -60,9 +60,28 @@ pre {
 .field {
     display: inline-block;
     background: #222;
-    border-radius: 1em;
+    border-radius: .25em;
     padding-left: 5px;
-    padding-right: 5px;
-    margin-left: 3px;
+    padding-right: 6px;
+    margin-left: 2px;
     margin-right: 3px;
+}
+
+.vertical-divider {
+    display: inline-block;
+    height: 1em;
+    width: 1px;
+    transform: translateY(2px);
+
+    background: gray;
+}
+
+.horizontal-divider {
+    display: block;
+    height: 1px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+
+    background: gray;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, gray 10%, gray 85%, rgba(80,80,80,0) 100%);
 }

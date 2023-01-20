@@ -166,6 +166,7 @@ class IndexedObj {
      *  @arg {Object} search.type types to search for
      *  @arg {String} search.operation operation to compare values with 
      *  @arg {Boolean} search.unsafe use if the object is not garunteed to be JSON stringifyable
+     *  @arg {Boolean} search.deepSearch search through non-enumerable properties as well (unsafe search only)
      */
     newSearch(search) {
         this.update('read');
@@ -351,18 +352,25 @@ class IndexedObj {
      * Similar to searchData but works for direct object references, may be slower
      * - handles functions 
      * - checks for cylic references
+     * - ignored accessor properties due to current lack of support for indexing them
+     * 
+     * TODO: 
      */
     _unsafeSearchData(variable, search, path = '', depth) {
-        let {value, type, operation} = search;
+        let {value, type, operation, deepSearch} = search;
         let processed = new Set();
         let isNative = this._isNative;
-        return searchFn(variable, path, depth);
+        return (deepSearch === true) ? deepSearchFn(variable, path, depth) : searchFn(variable, path, depth);
 
         function searchFn(variable, path, depth) {
             let k = Object.keys(variable), res = [];
 
             for (let i = 0; i < k.length; i++) {
+                // MAY CAUSE ERROR: infinite recursion on accessor properties which are enumerable and return 
+                // a higher level object
+                
                 let v = variable[k[i]];
+
                 if ((v === null) || (v === undefined) || isNative(v) || (v === window) || (v === window.parent))
                     continue;
 
@@ -371,6 +379,30 @@ class IndexedObj {
                 if (typeof v === 'object' && !(v instanceof Function) && !processed.has(v)) {
                     processed.add(v);
                     res.push(...searchFn(v, newPath, depth + 1));
+                } else if (type[typeof v] && operation(v, value, undefined, newPath)) {
+                    res.push([newPath, v]);
+                }
+            }
+
+            return res;
+        }
+
+        // deeper, but slower search
+        function deepSearchFn(variable, path, depth) {
+            let k = Object.getOwnPropertyNames(variable), res = [];
+
+            for (let i = 0; i < k.length; i++) {
+                let descriptor = Object.getOwnPropertyDescriptor(variable, k[i]);
+                let v = descriptor.value;
+
+                if ((v === null) || (v === undefined) || isNative(v) || (v === window) || (v === window.parent))
+                    continue;
+
+                const newPath = path + (path !== '' ? '.' : '') + k[i].replaceAll('.', '\\.');
+
+                if (typeof v === 'object' && !(v instanceof Function) && !processed.has(v)) {
+                    processed.add(v);
+                    res.push(...deepSearchFn(v, newPath, depth + 1));
                 } else if (type[typeof v] && operation(v, value, undefined, newPath)) {
                     res.push([newPath, v]);
                 }

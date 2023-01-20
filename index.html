@@ -202,30 +202,24 @@
 
                             <!-- <input type="checkbox" id="search-auto-live"> live reload -->
                         </div>
-                        <div class="foldable">
-                            <button onclick="this.classList.toggle('show')">info</button>
-                            <div>
-
-                                Auto mode will automatically detect the operation<br>
-                                The operator will always be first (ie. ==1, >3 etc) except for range<br>
-                                however for a range like &lt;= x &lt;= b the expression will be a~b<br>
-                                regex match and string includes will have to be manually selected however<br>
-                                note that regex match and string includes may have performance issues
-                            </div>
-                        </div>
 
                         <div class="foldable" id="type-select-cont">
-                            <button onclick="this.classList.toggle('show')">type</button>
+                            <button onclick="this.classList.toggle('show')">Options</button>
                             <div id="type-select">
                                 <div class="field">
                                     <input id='all-types' type="checkbox" checked> All
                                 </div>
-                                <br>
+
+                                <div class="vertical-divider"></div>
 
                                 <div class="field"><input disabled class='type-option' data-value="boolean" type="checkbox"> Boolean</div>
                                 <div class="field"><input disabled class='type-option' data-value="number" type="checkbox"> Number</div>
                                 <div class="field"><input disabled class='type-option' data-value="string" type="checkbox"> String</div>
                                 <div class="field"><input disabled class='type-option' data-value="function" type="checkbox"> Function</div>
+                                
+                                <div class="horizontal-divider"></div>
+                                <div class="field"><input id="search-hidden" type="checkbox">Search Hidden</div>
+                                
                             </div>
                         </div>
                         <button onclick="newSearch()">New Search</button>
@@ -257,7 +251,8 @@
     </div>
     <template id="autoclicker-template">
         <div class="list-item">
-            <button id="close_instance">✕</button>
+            <!-- ✕ - escaped to prevent unicode issues -->
+            <button id="close_instance">&#x2715;</button>
             <label class="switch">
                 <input type="checkbox" id="autoclick-switch">
                 <span class="switch-slider round"></span>

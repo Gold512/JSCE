@@ -44,7 +44,13 @@ function searchPageInit() {
 
     searchBox.addEventListener('keydown', e => {
         switch(e.code) {
-            case 'Enter': 
+            case 'Enter':
+                // check if length is not 0
+                if(objectIndex?.search?.length) {
+                    refine()
+                    break;
+                }
+
                 newSearch();
             break;
             // Change location with arrow keys 
@@ -333,7 +339,7 @@ function displaySearchRes(s) {
         div.addEventListener('click', e => {
             const alt = e.getModifierState('Alt') || e.getModifierState('Shift');
             const ctrl = e.getModifierState('Control');
-            console.log(alt, ctrl)
+
             if(alt || ctrl) {
                 e.preventDefault();
 
@@ -563,6 +569,7 @@ async function newSearch() {
         let value = document.getElementById('search-value').value;
         let value2 = document.getElementById('search-value-2').value;
         let operation = document.getElementById('search-operation').dataset.value;
+        let searchHidden = document.getElementById('search-hidden').checked;
         let type = getTypes();
         let root, path, read, write;
 
@@ -637,19 +644,19 @@ async function newSearch() {
             operation = v.operation;
         }
         
-        objectIndex.newSearch({value: value, operation: operation, type: type, unsafe: unsafe});
+        objectIndex.newSearch({value: value, operation: operation, type: type, unsafe: unsafe, deepSearch: searchHidden});
         displaySearchRes(objectIndex.search);
     } catch(err) {
         throw err;
-        let output = document.getElementById('search-res');
-        output.innerHTML = '';
+        // let output = document.getElementById('search-res');
+        // output.innerHTML = '';
 
-        let div = document.createElement('div');
-        div.style.textAlign = 'center';
-        div.style.margin = '0 5px';
-        div.innerText = `${err}\n${err.stack}`;
-        output.appendChild(div);
-        return;
+        // let div = document.createElement('div');
+        // div.style.textAlign = 'center';
+        // div.style.margin = '0 5px';
+        // div.innerText = `${err}\n${err.stack}`;
+        // output.appendChild(div);
+        // return;
     }
 }
 

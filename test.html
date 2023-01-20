@@ -56,7 +56,34 @@
 
 <p id="coords"></p>
 
-<h1>sample text</h1>
+<span>Object search test</span><br><br>
+<span id="click-count" style="border:rgb(70, 70, 70) 2px solid; padding: 3px 8px; margin-left: 2em; user-select: none; cursor: pointer;">0</span>
+<script>
+    window.game = {};
+    window.game.clicks = 0
+
+    // accessor property recursion test
+    Object.defineProperty(game, 'self', {
+        get: function () {
+            return window.game;
+        },
+        set: function (value) {}
+    })
+
+    Object.defineProperty(game, 'clickGetter', {
+        set: () => {},
+        get: function () {
+            return window.game.clicks;
+        }
+    });
+
+    document.getElementById("click-count").addEventListener("click", ev => {
+        window.game.clicks++;
+        ev.currentTarget.innerText = window.game.clicks;
+    });
+</script>
+
+<h1>sample text (autoclicker selector test)</h1>
 <h2>paragraph 1
     <h3>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Similique nulla odit mollitia nihil aliquam enim culpa nisi maxime facere consequuntur! Numquam at temporibus provident dolores laborum iste distinctio illo, consequuntur tempora doloribus, non, aliquam laudantium aliquid nam! In omnis iure ut accusantium rem voluptate eos consectetur, exercitationem, temporibus accusamus fugit adipisci tenetur enim ipsam. Perferendis, ipsam illum rerum ad accusantium praesentium, nam exercitationem, enim est illo dignissimos ullam veniam architecto magnam neque fuga. Laudantium eum error quia placeat nostrum. Blanditiis ipsam vel laboriosam corporis pariatur facere odit aspernatur! Quam repellat placeat dolorum alias officiis minus perferendis dolorem ducimus asperiores dolore!</h3>
 </h2>
@@ -95,5 +122,6 @@ function showCoords(event) {
   document.getElementById("coords").innerHTML = coords;
 }
 </script>
+<script type="text/javascript" src="./json.js"></script>
     </body>
 </html>
