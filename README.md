@@ -25,7 +25,7 @@ overwrites `Math.random` with a function that returns a custom number. The numbe
 generates a reference (pseudo reference using read and write functions for storage) to the object to be search. Then iterates over the object recursivly and checks the value based on an operation function. Then stores the result in a array with the path as a string. Accessor properties as well as cyclic references will be filtered out.
 
 #### Operators:
-> Note: v in format field represents input
+> Note: v in format field represents input  
 > value refers to the value of the variable
 
   Name | Symbol | Format | Description
