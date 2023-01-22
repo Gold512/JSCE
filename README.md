@@ -31,16 +31,16 @@ generates a reference (pseudo reference using read and write functions for stora
   Name | Symbol | Format | Description
   ---  | :---:  | :---:  | ---
 Universal | `**` | `**` | Matches all values
-Equal  | `==`   | `==`**`v`** |Checks if value is the same as the query, typecasting if nessesary
-Strict Equal | `===` | `===`**`v`** |Compares values without typecasting (the type of the search is auto type casted)
-Path | `.` | `.`**`v`** | Matches if path includes input 
-Range | `~` | **`v`**`~`**`v`** | Check if the first value is between the first and second input
-Greater/Equal | `>=` | `>=`**`v`** | -
-Greater | `>` | `>`**`v`** | -
-Less/Equal | `<=` | `<=`**`v`** | - 
-Less | `<` | `<`**`v`** | - 
-Includes | `?` | `?`**`v`** | Check if value includes input
-Regex | `/` | `/`**`v`** | Where input is a regex check if value matches the regex 
+Equal  | `==`   | <code>===<b>v</b></code> |Checks if value is the same as the query, typecasting if nessesary
+Strict Equal | `===` | <code>===<b>v</b></code> |Compares values without typecasting (the type of the search is auto type casted)
+Path | `.` | <code>.<b>v</b></code> | Matches if path includes input 
+Range | `~` | <code><b>v</b>~<b>v</b></code>  | Check if the first value is between the first and second input
+Greater/Equal | `>=` | <code>>=<b>v</b></code>  | -
+Greater | `>` | <code>><b>v</b></code>  | -
+Less/Equal | `<=` | <code><=<b>v</b></code>  | - 
+Less | `<` | <code><<b>v</b></code>  | - 
+Includes | `?` | <code>?<b>v</b></code>  | Check if value includes input
+Regex | `/` | <code>/<b>v</b></code> | Where input is a regex check if value matches the regex 
 
 **Refine Operators**:
 > These operators may only be used for refine
