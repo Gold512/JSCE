@@ -48,7 +48,7 @@ function openPage(page) {
     }
 }
 
-window.onload = function() {
+window.onload = async function() {
     pages = {
         main: document.getElementById('main-page'),
         search: document.getElementById('search-page'),
@@ -73,7 +73,6 @@ window.onload = function() {
                 let shown = window.parent.document.getElementById('jsce-container');
                 parent.jsce_toggle()
                 let btn = document.getElementById('jsce-floating-btn') || window.parent.document.getElementById('jsce-floating-btn');
-                console.log(btn)
                 if(btn) {
                     console.log(shown.style.display)
                     if(shown && shown.style.display == 'none') {
@@ -127,33 +126,7 @@ window.onload = function() {
         locationSelector.dataset.value = location;
         locationSelector.querySelector('button').innerText = location;
 
-        switch(location) {  
-            case 'global':
-                root = window.parent;
-            break;
-            case 'localStorage':
-                root = parseStorage(window.parent.localStorage);
-                read = function() {
-                    return parseStorage(window.parent.localStorage);
-                }
-                write = function(o) {
-                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                        window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                    }
-                }
-            break;
-            case 'sessionStorage':
-                root = parseStorage(window.parent.sessionStorage);
-                read = function() {
-                    return parseStorage(window.parent.sessionStorage);
-                }
-                write = function(o) {
-                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                        window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                    }
-                }
-            break;
-        }
+        let { root, read, write } = await createObjectReference(location);
 
         objectIndex = new IndexedObj(root);
         objectIndex.location = location;

@@ -32,21 +32,22 @@ function searchPageInit() {
         'global': 0,
         'localStorage': 1,
         'sessionStorage': 2,
-        // 'indexedDB': 3
+        'indexedDB': 3
     }
 
     let indexToLocation = [
         'global', 
         'localStorage', 
         'sessionStorage', 
-        // 'indexedDB'
+        'indexedDB'
     ]
 
     searchBox.addEventListener('keydown', e => {
         switch(e.code) {
             case 'Enter':
-                // check if length is not 0
-                if(objectIndex?.search?.length) {
+                let shift = e.getModifierState('Shift');
+                // check if length is not 0 and location is unchanged
+                if(!shift && objectIndex && objectIndex?.search?.length && (objectIndex.location === locationSelector.dataset.value)) {
                     refine()
                     break;
                 }
@@ -75,10 +76,10 @@ function searchPageInit() {
         }
     });
 
-    clearStorageBtn.addEventListener('click', ev => {
+    clearStorageBtn.addEventListener('click', async ev => {
         let self = ev.currentTarget;
         if(self.dataset.confirm) {
-            clearAllStorage();
+            await clearAllStorage();
             window.parent.location.reload();
             return;
         }
@@ -203,9 +204,9 @@ function formatPath(s) {
     return `<span style="color:rgb(117, 214, 255)">${res.join('')}</span>`;
 }
 
-function refreshSearchResults() {
+async function refreshSearchResults() {
     let elements = document.querySelector('#search-res').children;
-    objectIndex.update('read');
+    await objectIndex.read()
 
     for(let i = 0; i < elements.length; i++) {
         const e = elements[i];
@@ -226,20 +227,21 @@ async function editSelectedResults() {
     if(input === null || (input === '')) return;
     input = autoTypeCast(input);
 
-    let errs = 0;
-    objectIndex.update('read')
-    for(let i = 0; i < elements.length; i++) {
-        const e = elements[i];
-        e.querySelector('div[data-type]').dataset.type = typeof input;
-        try{
-            objectIndex._set(e.dataset.path, input);
-            objectIndex.search[Number(e.dataset.index)][1] = input;
-            e.querySelector('div[data-type] > span').innerText = input;
-        } catch(e) { errs++; }
-    }
-    objectIndex.update('write');
+    objectIndex.transform(() => {
+        let errs = 0;
 
-    if(errs > 1) alert(`Modified ${elements.length} items (${errs} Errors)`)
+        for(let i = 0; i < elements.length; i++) {
+            const e = elements[i];
+            e.querySelector('div[data-type]').dataset.type = typeof input;
+            try{
+                objectIndex._set(e.dataset.path, input);
+                objectIndex.search[Number(e.dataset.index)][1] = input;
+                e.querySelector('div[data-type] > span').innerText = input;
+            } catch(e) { errs++; }
+        }
+
+        if(errs > 1) alert(`Modified ${elements.length} items (${errs} Errors)`)
+    });
 }
 
 async function editSelectedPrompt(title) {
@@ -301,10 +303,11 @@ async function editSelectedPrompt(title) {
     return promise;
 }
 
-function clearAllStorage() {
+async function clearAllStorage() {
     let win = window.parent;
     win.localStorage.clear();
     win.sessionStorage.clear();
+    await clearAllDBs();
 }
 
 function displaySearchRes(s) {
@@ -385,21 +388,6 @@ function displaySearchRes(s) {
                         selectedElements.add(i);
                     }
                 }
-                // else if(prevSelection !== null) {
-                //     // ctrl selection 
-                //     // dont de-select
-
-                //     const min = Math.min(idx, prevSelection);
-                //     const max = Math.max(idx, prevSelection);
-
-                //     const setOperation = prevEndState ? 'add' : 'delete';
-                //     const classOperation = prevEndState ? 'add' : 'remove';
-
-                //     for(let i = min; i <= max; i++) {
-                //         selectedElements[setOperation](i);
-                //         output.children[i].classList[classOperation]('selected');
-                //     }
-                // }
 
                 return;
             }
@@ -571,56 +559,10 @@ async function newSearch() {
         let operation = document.getElementById('search-operation').dataset.value;
         let searchHidden = document.getElementById('search-hidden').checked;
         let type = getTypes();
-        let root, path, read, write;
 
         if(value.length == 0) return
 
-        switch(location) {  
-            case 'global':
-                root = window.parent;
-                path = 'window';
-            break;
-            case 'localStorage':
-                root = parseStorage(window.parent.localStorage);
-                read = function() {
-                    return parseStorage(window.parent.localStorage);
-                }
-                write = function(o) {
-                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                        window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                    }
-                }
-            break;
-            case 'sessionStorage':
-                root = parseStorage(window.parent.sessionStorage);
-                read = function() {
-                    return parseStorage(window.parent.sessionStorage);
-                }
-                write = function(o) {
-                    for(let i = 0, k = Object.keys(o); i < k.length; i++) {
-                        window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
-                    }
-                }
-            break;
-            // case 'indexedDB':
-            //     let databases = await indexedDB.databases();
-            //     for(let i = 0; i < databases.length; i++) {
-            //         const {name, version} = databases[i];
-            //         let request = indexedDB.open(name, version);
-            //         request.onsuccess = function() {
-            //             const db = request.result;
-            //             for(let j = 0; j < db.objectStoreNames.length; j++) {
-            //                 let transaction = db.transaction(db.objectStoreNames[j], 'readwrite');
-            //                 let t = transaction.objectStore(db.objectStoreNames[j]).getAll();
-            //                 t.onsuccess = () => {
-            //                     console.log(`${name}.${db.objectStoreNames[j]}`)
-            //                     console.log(t.result)
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     break;
-        }
+        let { root, read, write } = await createObjectReference(location);
 
         objectIndex = new IndexedObj(root);
         objectIndex.location = location;
@@ -658,6 +600,219 @@ async function newSearch() {
         // output.appendChild(div);
         // return;
     }
+}
+
+async function createObjectReference(location) {
+    let root, read, write;
+    switch(location) {
+        case 'global':
+            root = window.parent;
+            break;
+            
+        case 'localStorage':
+            root = parseStorage(window.parent.localStorage);
+
+            read = function () {
+                return parseStorage(window.parent.localStorage);
+            };
+
+            write = function (o) {
+                for (let i = 0, k = Object.keys(o); i < k.length; i++) {
+                    window.parent.localStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                }
+            };
+
+            break;
+        case 'sessionStorage':
+            root = parseStorage(window.parent.sessionStorage);
+
+            read = function () {
+                return parseStorage(window.parent.sessionStorage);
+            }
+
+            write = function (o) {
+                for (let i = 0, k = Object.keys(o); i < k.length; i++) {
+                    window.parent.sessionStorage.setItem(k[i], JSON.stringify(o[k[i]]));
+                }
+            }
+
+            break;
+        case 'indexedDB':
+            let db = await getAllDBs(window.parent);
+            root = parseDBData(db);
+
+            read = async () => {
+                let db = await getAllDBs(window.parent);
+                return parseDBData(db)
+            }
+
+            write = async (o) => {
+                let db = unparseDBData(o);
+                setAllDBs(db);
+            }
+            break;
+    }
+    return { root, read, write };
+}
+
+/**
+ * Attempt to parse all DB data into JS objects
+ * @param {object} db - db data from getAllDBs
+ */
+function parseDBData(db) {
+    for(let i in db) {
+        let objStores = db[i];
+        for(let j in objStores) {
+            let keys = db[i][j]
+
+            for(let k in keys) {
+                let e = db[i][j][k];
+                db[i][j][k] = _attemptParse(e);
+            }
+        }
+    }
+
+    return db;
+}
+
+function unparseDBData(db) {
+    for(let i in db) {
+        let objStores = db[i];
+        for(let j in objStores) {
+            let keys = db[i][j]
+
+            for(let k in keys) {
+                let e = db[i][j][k];
+                db[i][j][k] = _reverseParse(e);
+            }
+        }
+    }
+}
+
+function _attemptParse(o) {
+    if(typeof o == 'string') {
+        try {
+            return ['json', JSON.parse(o)];
+        } catch (e) {}
+    }
+
+    return ['none', o];
+}
+
+function _reverseParse(o) {
+    let type = o[0];
+    let value = o[1];
+
+    switch(type) {
+        case 'json':
+            return JSON.stringify(value);
+
+        case 'none':
+            return value;
+        
+        default: throw new Error("Invalid data type '" + type + "'");
+    }
+}
+
+/**
+ * 
+ * @param {Window} win - the window to search in
+ * @returns {object} - the found data in indexed databases
+ */
+async function getAllDBs(win = window) {
+    let dbList = await win.indexedDB.databases();
+    let processes = [];
+    let res = {};
+
+    for(let i = 0; i < dbList.length; i++) {
+        const dbInfo = dbList[i];
+        const name = dbInfo.name;
+        const db = win.indexedDB.open(name);
+        res[name] = {};
+
+        processes.push(new Promise((resolve, reject) => {
+            db.onsuccess = () => {
+                let database = db.result;
+                let objectStores = database.objectStoreNames;
+                let transaction = database.transaction(objectStores, "readonly");
+
+                for(let j = 0; j < objectStores.length; j++) {
+                    let objectStore = transaction.objectStore(objectStores[j]);
+                    res[name][objectStores[j]] = {};
+                    request = objectStore.openCursor();
+
+                    request.onerror = function(event) {
+                        reject("unable to create object store cursor for '" + objectStores[j] + "'")
+                    }
+
+                    request.onsuccess = function(event) {
+                        let cursor = event.target.result;
+                        if (cursor) {
+                            let key = cursor.primaryKey;
+                            let value = cursor.value;
+                            res[dbInfo.name][objectStores[j]][key] = value;
+
+                            cursor.continue();
+                        }
+                        resolve();
+                    }
+                }
+            }
+
+            db.onerror = () => {
+                reject(`failed to open database '${name}'`)
+            }
+        }));
+    }
+
+    await Promise.all(processes);
+    return res;
+}
+
+// obj format: obj[databaseName][objectStores][key]
+/**
+ * Set all indexed databases to object definition
+ * @param {Object} obj - the object to set
+ * @param {Window} win - the window to search in
+ * @returns {object} - the found data in indexed databases
+ */
+async function setAllDBs(obj, win = window) {
+    let processes = [];
+
+    // write into all databases and overwrite them with the new object
+    for(let databaseName in obj) {
+        const db = indexedDB.open(databaseName);
+
+        processes.push(new Promise((resolve, reject) => {
+            db.onerror = () => {
+                reject(`failed to open database '${databaseName}'`);
+            }
+
+            db.onsuccess = () => {
+                let database = db.result;
+                let transaction = database.transaction(Object.keys(obj[databaseName]), "readwrite");
+
+                for(let objectStoreNames in obj[databaseName]) {
+                    let objectStore = transaction.objectStore(objectStoreNames);
+                    
+                    // set the values of all the key value pairs
+                    // adding them if they dont already exist
+                    let objectStoreIndex = obj[databaseName][objectStoreNames];
+                    for(let key in objectStoreIndex) {
+                        objectStore.put(key, objectStoreIndex[key]);
+                    }
+                }
+            }
+        }));
+    }
+
+    // wait until all operations are complete
+    await Promise.all(processes);
+}
+
+async function clearAllDBs() {
+    const dbs = await window.indexedDB.databases()
+    dbs.forEach(db => { window.indexedDB.deleteDatabase(db.name) })
 }
 
 function refine() {
@@ -699,12 +854,12 @@ function change_search_op(e) {
     }
 }
 
-function saveAndReload() {
+async function saveAndReload() {
     // save search data and reload 
     let win = window.parent;
     
     if(objectIndex !== undefined) {
-        objectIndex.update('read');
+        await objectIndex.read();
         win.sessionStorage.setItem('jsce-data', JSON.stringify({
             search: objectIndex.search,
             location: objectIndex.location,

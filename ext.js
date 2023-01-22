@@ -8,6 +8,7 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant GM_setValue
 // @grant GM_getValue
+// @grant GM_registerMenuCommand
 // @grant unsafeWindow
 // ==/UserScript==
 
@@ -93,11 +94,7 @@
         let el = document.getElementById('jsce-container');
         if(e.getModifierState("Alt") && e.getModifierState("Control") && e.getModifierState("Shift")) {
             if(e.code === 'KeyC') {
-                if(!initialised) {
-                    await init();
-                    initialised = true;
-                }
-                window.jsce_toggle()
+                await onActivationKey();
             }
         }
     }
@@ -129,4 +126,14 @@
         while(performance.now() < end) {};
         startBtn.innerText = 'Freeze';
     });
+
+    async function onActivationKey() {
+        if (!initialised) {
+            await init();
+            initialised = true;
+        }
+        window.jsce_toggle();
+    }
+
+    // GM_registerMenuCommand('Open GUI', onActivationKey, 'o')
 })();

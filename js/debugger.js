@@ -1,6 +1,6 @@
 /**
  * 
- * @param {Number} n layers of callstack to remove (defaults to only removing until the getCallstack functino)
+ * @param {Number} n layers of callstack to remove (defaults to only removing until the getCallstack function)
  * @returns {String} callstack 
  */
 function getCallstack(n = 0) {
@@ -13,26 +13,25 @@ class IndexedObj {
     constructor(obj = {}, path = '') {
         this.obj = obj;
         this.search = [];
-        this.update = () => { return this.obj; };
+        this._update = () => { return this.obj; };
         this.path = path;
     }
 
     set(path, value) {
-        this.update('read');
+        this._update('read');
         let success = this._set(path, value);
-        this.update('write');
+        this._update('write');
         return success;
     }
     
     get(path) {
-        this.update('read');
+        this._update('read');
         return this._get(path);
     }
 
     export() {
         return {
             search: this.search,
-
         }
     }
 
@@ -160,7 +159,7 @@ class IndexedObj {
     }
 
     /**
-     * 
+     * Start a new search
      * @param {Object} search dictionary of search parameters
      *  @arg {String|Number|Boolean} search.value value to search for 
      *  @arg {Object} search.type types to search for
@@ -169,7 +168,7 @@ class IndexedObj {
      *  @arg {Boolean} search.deepSearch search through non-enumerable properties as well (unsafe search only)
      */
     newSearch(search) {
-        this.update('read');
+        this._update('read');
         if(search.unsafe) {
             this.search = this._unsafeSearchData(this.obj, this._parseSearch(search));
         } else {
@@ -179,7 +178,9 @@ class IndexedObj {
 
     refine(search) {
         let {value, type, operation} = this._parseSearch(search);
-        this.update('read');
+
+        let readStatus = this._update('read');
+        if(readStatus instanceof Promise)
         if(!this.search) throw new Error('no search to refine');
         let res = [];        
 
@@ -204,24 +205,49 @@ class IndexedObj {
 
     /**
      * set this.update function for things that do not this.update automatically like storage
-     * @param {Function} read function to call when db is read, should return the this.updated object 
-     * @param {Function} write function to call when db is written to, should return the this.updated object 
+     * @param {function(): object | function(): Promise<object>} read function to call when db is read, should return the this.updated object 
+     * @param {function(object): void | function(object): Promise<void>} write function to call when db is written to, should return the this.updated object 
      */
     onUpdate(read, write) {
-        this.update = (op) => {
+        this._update = async (op) => {
             switch (op) {
                 case 'read':
-                    this.obj = read();
+                    this.obj = await read();
                     break;
                 case 'write':
-                    write(this.obj);
+                    let writeStatus = write(this.obj);
+                    if(writeStatus instanceof Promise) await writeStatus;
+
                     break;
                 default:
                     throw new Error('invalid operation')
-                    break;
             }
             
         }
+    }
+
+    /**
+     * Edit the indexed object safely with automatic updates of sources if any
+     * @async
+     * @param {function(object): void} fn - function called with the object that was indexed
+     */
+    async transform(fn) {
+        let readStatus = this._update('read');
+        if(readStatus instanceof Promise) await readStatus;
+
+        fn(this.obj);
+
+        let writeStatus = this._update('write');
+        if(writeStatus instanceof Promise) await writeStatus;
+    }
+
+    /**
+     * Update the object from source if needed
+     * @async
+     */
+    async read() {
+        let readStatus = this._update('read');
+        if(readStatus instanceof Promise) await readStatus;
     }
 
     _parseSearch(search) {
