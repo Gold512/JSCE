@@ -31,16 +31,16 @@ generates a reference (pseudo reference using read and write functions for stora
   Name | Symbol | Format | Description
   ---  | :---:  | :---:  | ---
 Universal | `**` | `**` | Matches all values
-Equal  | `==`   | <code>===<b>v</b></code> |Checks if value is the same as the query, typecasting if nessesary
-Strict Equal | `===` | <code>===<b>v</b></code> |Compares values without typecasting (the type of the search is auto type casted)
-Path | `.` | <code>.<b>v</b></code> | Matches if path includes input 
-Range | `~` | <code><b>v</b>~<b>v</b></code>  | Check if the first value is between the first and second input
+Equal  | `==`   | <code>===<b>v</b></code> | Checks if value is the same as **`v`**, typecasting if nessesary
+Strict Equal | `===` | <code>===<b>v</b></code> | Compares values without typecasting (the type of the search is auto type casted)
+Path | `.` | <code>.<b>v</b></code> | Matches if path includes **`v`** 
+Range | `~` | <code><b>v<sub>1</sub></b>~<b>v<sub>2</sub></b></code>  | Check if the value is between <code><b>v<sub>1</sub></b></code> and <code><b>v<sub>2</sub></b></code>
 Greater/Equal | `>=` | <code>>=<b>v</b></code>  | -
 Greater | `>` | <code>><b>v</b></code>  | -
 Less/Equal | `<=` | <code><=<b>v</b></code>  | - 
 Less | `<` | <code><<b>v</b></code>  | - 
-Includes | `?` | <code>?<b>v</b></code>  | Check if value includes input
-Regex | `/` | <code>/<b>v</b></code> | Where input is a regex check if value matches the regex 
+Includes | `?` | <code>?<b>v</b></code>  | Check if value includes **`v`**
+Regex | `/` | <code>/<b>v</b></code> | Where **`v`** is a regex check if value matches the regex 
 Approx Equals | `~~` | <code><b>v<sub>1</sub></b>~~<b>v<sub>2</sub></b></code> | Check if value is equal to <code><b>v<sub>1</sub></b></code> correct to <code><b>v<sub>2</sub></b></code> significant figures
 
 **Refine Operators**:
