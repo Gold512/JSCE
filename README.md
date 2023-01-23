@@ -52,6 +52,10 @@ Change | `/\`   | Check if the value has changed when compared to previous searc
 Increase | `/\>` | Check if value has increased when compared to previous search
 Decrease | `/\<` | Check if value has decreased when compared to previous search
 
+#### Multi Select  
+`Shift+Click` to select range of items
+`Alt+Click` to select and deselect range of items 
+`Alt+Shift+Click` to select and deselect multiple ranges of items 
 
 ## Stack tracing
 
