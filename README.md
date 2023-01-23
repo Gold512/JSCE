@@ -41,6 +41,7 @@ Less/Equal | `<=` | <code><=<b>v</b></code>  | -
 Less | `<` | <code><<b>v</b></code>  | - 
 Includes | `?` | <code>?<b>v</b></code>  | Check if value includes input
 Regex | `/` | <code>/<b>v</b></code> | Where input is a regex check if value matches the regex 
+Approx Equals | `~~` | <code><b>v<sub>1</sub></b>~~<b>v<sub>2</sub></b></code> | Check if value is equal to <code><b>v<sub>1</sub></b></code> correct to <code><b>v<sub>2</sub></b></code> significant figures
 
 **Refine Operators**:
 > These operators may only be used for refine
