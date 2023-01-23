@@ -799,7 +799,8 @@ async function setAllDBs(obj, win = window) {
                     // adding them if they dont already exist
                     let objectStoreIndex = obj[databaseName][objectStoreNames];
                     for(let key in objectStoreIndex) {
-                        objectStore.put(key, objectStoreIndex[key]);
+                        // put has the item param before the key
+                        objectStore.put(objectStoreIndex[key], key);
                     }
                 }
             }
