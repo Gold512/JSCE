@@ -74,7 +74,6 @@ window.onload = async function() {
                 parent.jsce_toggle()
                 let btn = document.getElementById('jsce-floating-btn') || window.parent.document.getElementById('jsce-floating-btn');
                 if(btn) {
-                    console.log(shown.style.display)
                     if(shown && shown.style.display == 'none') {
                         btn.style.display = 'none';
                     } else {

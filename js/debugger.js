@@ -17,15 +17,22 @@ class IndexedObj {
         this.path = path;
     }
 
-    set(path, value) {
-        this._update('read');
+    async set(path, value) {
+        let readStatus = this._update('read');
+        if(readStatus instanceof Promise) await readStatus;
+
         let success = this._set(path, value);
-        this._update('write');
+
+        let writeStatus = this._update('write');
+        if(writeStatus instanceof Promise) await writeStatus;
+        
         return success;
     }
     
-    get(path) {
-        this._update('read');
+    async get(path) {
+        let writeStatus = this._update('write');
+        if(writeStatus instanceof Promise) await writeStatus;
+
         return this._get(path);
     }
 

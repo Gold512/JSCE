@@ -307,7 +307,7 @@ async function clearAllStorage() {
     let win = window.parent;
     win.localStorage.clear();
     win.sessionStorage.clear();
-    await clearAllDBs();
+    await clearAllDBs(window.parent);
 }
 
 function displaySearchRes(s) {
@@ -567,7 +567,7 @@ async function newSearch() {
         objectIndex = new IndexedObj(root);
         objectIndex.location = location;
         let unsafe = true;
-        if(location === 'sessionStorage' || location === 'localStorage') {
+        if((read !== null) && (write !== null)) {
             objectIndex.onUpdate(read, write);
             unsafe = false;
         }
@@ -603,7 +603,7 @@ async function newSearch() {
 }
 
 async function createObjectReference(location) {
-    let root, read, write;
+    let root, read = null, write = null;
     switch(location) {
         case 'global':
             root = window.parent;
@@ -648,8 +648,9 @@ async function createObjectReference(location) {
 
             write = async (o) => {
                 let db = unparseDBData(o);
-                setAllDBs(db);
+                await setAllDBs(db, window.parent);
             }
+
             break;
     }
     return { root, read, write };
@@ -660,6 +661,7 @@ async function createObjectReference(location) {
  * @param {object} db - db data from getAllDBs
  */
 function parseDBData(db) {
+    db = JSON.parse(JSON.stringify(db));
     for(let i in db) {
         let objStores = db[i];
         for(let j in objStores) {
@@ -676,6 +678,7 @@ function parseDBData(db) {
 }
 
 function unparseDBData(db) {
+    db = JSON.parse(JSON.stringify(db));
     for(let i in db) {
         let objStores = db[i];
         for(let j in objStores) {
@@ -687,6 +690,8 @@ function unparseDBData(db) {
             }
         }
     }
+
+    return db;
 }
 
 function _attemptParse(o) {
@@ -781,7 +786,7 @@ async function setAllDBs(obj, win = window) {
 
     // write into all databases and overwrite them with the new object
     for(let databaseName in obj) {
-        const db = indexedDB.open(databaseName);
+        const db = win.indexedDB.open(databaseName);
 
         processes.push(new Promise((resolve, reject) => {
             db.onerror = () => {
@@ -803,6 +808,8 @@ async function setAllDBs(obj, win = window) {
                         objectStore.put(objectStoreIndex[key], key);
                     }
                 }
+                
+                resolve();
             }
         }));
     }
@@ -811,9 +818,9 @@ async function setAllDBs(obj, win = window) {
     await Promise.all(processes);
 }
 
-async function clearAllDBs() {
-    const dbs = await window.indexedDB.databases()
-    dbs.forEach(db => { window.indexedDB.deleteDatabase(db.name) })
+async function clearAllDBs(win) {
+    const dbs = await win.indexedDB.databases()
+    dbs.forEach(db => { win.indexedDB.deleteDatabase(db.name) })
 }
 
 function refine() {

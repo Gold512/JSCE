@@ -193,7 +193,6 @@ function init_floating_btn() {
     }
 
     function mouseUp(ev) {
-        console.log(ev.button, freezeOnRightClick.checked)
         if(ev.button == 2 && freezeOnRightClick.checked) {
             return;
         }
