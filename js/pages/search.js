@@ -661,7 +661,7 @@ async function createObjectReference(location) {
  * @param {object} db - db data from getAllDBs
  */
 function parseDBData(db) {
-    db = JSON.parse(JSON.stringify(db));
+    db = structuredClone(db);
     for(let i in db) {
         let objStores = db[i];
         for(let j in objStores) {
@@ -678,7 +678,7 @@ function parseDBData(db) {
 }
 
 function unparseDBData(db) {
-    db = JSON.parse(JSON.stringify(db));
+    db = structuredClone(db);
     for(let i in db) {
         let objStores = db[i];
         for(let j in objStores) {
@@ -739,6 +739,13 @@ async function getAllDBs(win = window) {
             db.onsuccess = () => {
                 let database = db.result;
                 let objectStores = database.objectStoreNames;
+
+                // database has no object stores
+                if(objectStores.length === 0) {
+                    resolve();
+                    return;
+                }
+
                 let transaction = database.transaction(objectStores, "readonly");
 
                 for(let j = 0; j < objectStores.length; j++) {
