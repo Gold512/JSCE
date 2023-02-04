@@ -18,9 +18,13 @@ class Speeder {
 
 
         this.speed = 1;
+        this.enabled = false;
 
         let ctx = (function* g() {
+            const SET_TYPE_STR = Object.prototype.toString.call(new Set());
+
             let speed = 1;
+            let functionList = null;
             let start = win.document.timeline.currentTime || win.performance.now();
             let prevTime = win.document.timeline.currentTime || win.performance.now();
 
@@ -33,6 +37,7 @@ class Speeder {
             let changeFramerate = false;
             let fps = null;
             let _frameInterval;
+
             while(true) {
                 let input = yield null;
 
@@ -45,49 +50,64 @@ class Speeder {
                     changeFramerate = input.changeFramerate;
                     continue;
                 }
+
+                if(Object.prototype.toString.call(input?.functionList) === SET_TYPE_STR) {
+                    functionList = input.functionList;
+                }
                 
                 if(input === true) {
-                    win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
-                    win.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
+                    if(functionList === null || functionList.has('setTimeout')) {
+                        win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
+                    }
 
-                    if(changeFramerate) {
-                        // if fps is set then use it else scale the fps based on speed
-                        _frameInterval = fps ? (1 / fps) : (1000 / 60 / speed);
+                    if(functionList === null || functionList.has('setInterval')) {
+                        win.setInterval = function(fn, t, ...args) { return interval(fn, t/speed, ...args) }
+                    }
+
+                    // if(changeFramerate) {
+                    //     // if fps is set then use it else scale the fps based on speed
+                    //     _frameInterval = fps ? (1 / fps) : (1000 / 60 / speed);
                         
-                        win.requestAnimationFrame = callback => {
-                            return setTimeout(t => {
+                    //     win.requestAnimationFrame = callback => {
+                    //         return setTimeout(t => {
                                 
-                            }, _frameInterval);
+                    //         }, _frameInterval);
+                    //     }
+
+                    //     // patch cancelAnimationFrame so it cancels the call to requestAnimationFrame
+                    // }
+
+                    if(functionList === null || functionList.has('requestAnimationFrame')) {
+                        win.requestAnimationFrame = callback => {
+                            return animationFrame(t => {
+                                let elapsedTime = (t - start);
+                                start = t;
+                                prevTime += elapsedTime * speed;
+                                callback(prevTime); 
+                            })
                         }
-
-                        // patch cancelAnimationFrame so it cancels the call to requestAnimationFrame
                     }
 
-                    win.requestAnimationFrame = callback => {
-                        return animationFrame(t => {
-                            let elapsedTime = (t - start);
-                            start = t;
-                            prevTime += elapsedTime * speed;
-                            callback(prevTime); 
-                        })
+                    if(functionList === null || functionList.has('Date.now')) {
+                        win.Date.now = () => {
+                            let realDate = date.call(win.Date)
+                            let elapsed = (realDate - startDate) * speed;
+
+                            startDate = realDate;
+                            prevDate += elapsed;
+                            return Math.floor(prevDate);
+                        }
                     }
 
-                    win.Date.now = () => {
-                        let realDate = date.call(win.Date)
-                        let elapsed = (realDate - startDate) * speed;
-                        
-                        startDate = realDate;
-                        prevDate += elapsed;
-                        return Math.floor(prevDate);
-                    }
+                    if(functionList === null || functionList.has('performance.now')) {
+                        win.performance.now = () => {
+                            let realPerfNow = performance.call(win.performance);
+                            let elapsed = (realPerfNow - startPerfNow) * speed;
 
-                    win.performance.now = () => {
-                        let realPerfNow = performance.call(win.performance);
-                        let elapsed = (realPerfNow - startPerfNow) * speed;
-
-                        startPerfNow = realPerfNow;
-                        prevPerfNow += elapsed;
-                        return prevPerfNow;
+                            startPerfNow = realPerfNow;
+                            prevPerfNow += elapsed;
+                            return prevPerfNow;
+                        }
                     }
                 }
 
@@ -105,6 +125,7 @@ class Speeder {
     enable() {
         this.ctx.next({speed:this.speed})
         this.ctx.next(true);
+        this.enabled = true;
     }
 
     disable() {
@@ -113,6 +134,7 @@ class Speeder {
         this.win.requestAnimationFrame = this.original.animationFrame;
         this.win.Date.now = this.original.date;
         this.win.performance.now = this.original.performance;
+        this.enabled = false;
     }
 
     setSpeed(speed) {
@@ -120,12 +142,28 @@ class Speeder {
         this.ctx.next({speed})
     }
 
+    /**
+     * set functions to override
+     * @param {null|('setTimeout'|'setInterval'|'requestAnimationFrame'|'Date.now'|'performance.now')[]} functionList 
+     */
+    setFunctions(functionList) {
+        const ARRAY_TYPE_STR = Object.prototype.toString.call([]);
+        if(Object.prototype.toString.call(functionList) === ARRAY_TYPE_STR) functionList = new Set(functionList);
+        this.ctx.next({functionList});
+
+        // if is currently enabled, update functions 
+        if(this.enabled) {
+            this.disable();
+            this.enable();
+        }
+    }
+
     /** 
      * change framerate of requestAnimationFrame
      */
-    setFramerate(bool) {
-        this.ctx.next({changeFramerate:bool});
-    }
+    // setFramerate(bool) {
+    //     this.ctx.next({changeFramerate:bool});
+    // }
 }
 
 class RNG {

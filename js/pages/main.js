@@ -6,7 +6,8 @@ function mainPageInit() {
     let speeder = {
         slider: document.getElementById('speeder-slider'),
         textbox: document.getElementById('speeder-textbox'),
-        switch: document.getElementById('speeder-switch')
+        switch: document.getElementById('speeder-switch'),
+        functionList: document.querySelectorAll('.speeder-function-list')
     };
 
     let rngel = {
@@ -99,12 +100,32 @@ function mainPageInit() {
         let disabled = !e.currentTarget.checked;
         speeder.textbox.disabled = disabled;
         speeder.slider.disabled = disabled;
+
         if(disabled) {
             speed.disable();
         } else {
+
+            updateSpeederFunctionList();
+
             speed.enable();
         }
     });
+
+    function updateSpeederFunctionList() {
+        let functionList = [];
+        for(let i = 0; i < speeder.functionList.length; i++) {
+            const e = speeder.functionList[i];
+            if(!e.checked) continue;
+            let functions = e.dataset.functionlist.split(',');
+            functionList.push(...functions);
+        }
+
+        speed.setFunctions(functionList);
+    }
+
+    speeder.functionList.forEach(element => {
+        element.addEventListener('change', updateSpeederFunctionList);
+    })
 
     rngel.switch.addEventListener('input', e => {
         let state = e.currentTarget.checked;
@@ -138,7 +159,12 @@ function mainPageInit() {
         window.parent.postMessage({operation: 'jsce_freeze', time: Number(freezeInput.value)}, '*');
     })
 
-    
+    let initialState = window.parent.document.documentElement.contentEditable;
+
+    document.getElementById('content-editable-switch').addEventListener('input', e => {
+        console.log('a')
+        window.parent.document.documentElement.contentEditable = e.currentTarget.checked ? 'true' : initialState; 
+    })
 }
 
 function init_floating_btn() {
@@ -255,12 +281,6 @@ function init_floating_btn() {
     })
 
     window.parent.document.documentElement.appendChild(el);
-
-    let initialState = window.parent.document.documentElement.contentEditable;
-
-    document.addEventListener('content-editable-switch').addEventListener('input', e => {
-        window.parent.document.documentElement.contentEditable = e.currentTarget.checked ? 'true' : initialState; 
-    })
 }
 
 function* IDGenerator() {

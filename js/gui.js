@@ -32,9 +32,12 @@ function checkSpeedRange(speeder) {
     speeder.textbox.classList.remove('error');
 }
 
+// speeder slider speeds
+const speederSpeeds = [0.0001, 0.001, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 2, 3, 5, 10, 15, 25, 50, 75, 100, 200, 500, 1000];
 function parseRange(n) {
-    return Math.pow(2, parseInt(n))
+    return speederSpeeds[(speederSpeeds.length-1)/2 + parseInt(n)]
 }
+
 let currentFocused = null;
 let pages;
 

@@ -110,8 +110,17 @@
                             <span class="switch-slider round"></span>
                         </label>
                     </div>
-                    <input disabled type="range" min="-5" max="10" value="0" class="slider" id="speeder-slider">
+                    <input disabled type="range" min="-14" max="14" value="0" class="slider" id="speeder-slider">
                     <input disabled type="number" value="1" id="speeder-textbox" autocomplete="off">
+
+                    <div class="foldable" id="type-select-cont">
+                        <button onclick="this.classList.toggle('show')">Functions</button>
+                        <div>
+                            <div class="field"><input class='speeder-function-list' type="checkbox" data-functionlist="setTimeout,setInterval"> Callback</div>
+                            <div class="field"><input class='speeder-function-list' checked type="checkbox" data-functionlist="Date.now,performance.now,requestAnimationFrame"> Timestamp return</div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="box">
