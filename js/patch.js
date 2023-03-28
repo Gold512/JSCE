@@ -55,6 +55,12 @@ class Speeder {
                     functionList = input.functionList;
                 }
                 
+                if(typeof input?.timeskip === 'number') {
+                    prevDate += input.timeskip;
+                    prevPerfNow += input.timeskip;
+                    continue;
+                }
+
                 if(input === true) {
                     if(functionList === null || functionList.has('setTimeout')) {
                         win.setTimeout = function(fn, t, ...args) { return timeout(fn, t/speed, ...args) }
@@ -157,6 +163,25 @@ class Speeder {
             this.enable();
         }
     }
+
+    timeskip(time) {
+        this.ctx.next({timeskip: time});
+    }
+
+    /**
+     * 
+     * @param {number|string} time 
+     * 
+     */
+    // _parseTime(time) {
+    //     if(typeof time === 'number') return time;
+
+    //     let tokens = [];
+    //     let tokenType = 'number';
+    //     for(let i = 0; i < time.length; i++) {
+    //         const c = time[i];
+    //     }
+    // }
 
     /** 
      * change framerate of requestAnimationFrame
