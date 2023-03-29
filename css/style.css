@@ -426,3 +426,7 @@ body { height: 100vh; }
 #clear-storage[data-confirm]:not([data-confirm='']) {
     color: red;
 }
+
+input.mono {
+    font-family: monospace;
+}

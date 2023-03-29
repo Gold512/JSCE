@@ -168,21 +168,6 @@ class Speeder {
         this.ctx.next({timeskip: time});
     }
 
-    /**
-     * 
-     * @param {number|string} time 
-     * 
-     */
-    // _parseTime(time) {
-    //     if(typeof time === 'number') return time;
-
-    //     let tokens = [];
-    //     let tokenType = 'number';
-    //     for(let i = 0; i < time.length; i++) {
-    //         const c = time[i];
-    //     }
-    // }
-
     /** 
      * change framerate of requestAnimationFrame
      */
