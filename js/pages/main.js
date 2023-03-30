@@ -150,7 +150,7 @@ function mainPageInit() {
 
     speeder.timeskipBtn.addEventListener('click', () => {
         const duration = parseDuration(speeder.timeskip.value);
-        if(isNaN(duration)) return;
+        if(isNaN(duration)) alert(`Invalid duration '${speeder.timeskip.value}'`);
         speed.timeskip(duration);
     })
 

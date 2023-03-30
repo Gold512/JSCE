@@ -57,7 +57,10 @@ class Speeder {
                 
                 if(typeof input?.timeskip === 'number') {
                     prevDate += input.timeskip;
+                    startDate = date.call(win.Date);
+        
                     prevPerfNow += input.timeskip;
+                    realPerfNow = performance.call(win.performance);
                     continue;
                 }
 
