@@ -54,6 +54,15 @@ class Speeder {
                 if(Object.prototype.toString.call(input?.functionList) === SET_TYPE_STR) {
                     functionList = input.functionList;
                 }
+                
+                if(typeof input?.timeskip === 'number') {
+                    prevDate += input.timeskip;
+                    startDate = date.call(win.Date);
+        
+                    prevPerfNow += input.timeskip;
+                    startPerfNow = performance.call(win.performance);
+                    continue;
+                }
 
                 if(input === true) {
                     if(functionList === null || functionList.has('setTimeout')) {
