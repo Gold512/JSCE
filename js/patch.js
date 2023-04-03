@@ -167,10 +167,6 @@ class Speeder {
         }
     }
 
-    timeskip(time) {
-        this.ctx.next({timeskip: time});
-    }
-
     /** 
      * change framerate of requestAnimationFrame
      */

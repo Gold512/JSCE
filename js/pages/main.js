@@ -148,20 +148,20 @@ function mainPageInit() {
         return duration;
     }
 
-    speeder.timeskipBtn.addEventListener('click', () => {
-        const duration = parseDuration(speeder.timeskip.value);
-        if(isNaN(duration)) alert(`Invalid duration '${speeder.timeskip.value}'`);
-        speed.timeskip(duration);
-    })
+    // speeder.timeskipBtn.addEventListener('click', () => {
+    //     const duration = parseDuration(speeder.timeskip.value);
+    //     if(isNaN(duration)) alert(`Invalid duration '${speeder.timeskip.value}'`);
+    //     speed.timeskip(duration);
+    // })
 
-    speeder.timeskip.addEventListener('input', ev => {
-        let currentParsedDuration = parseDuration(ev.currentTarget.value);
-        if(isNaN(currentParsedDuration)) {
-            ev.currentTarget.classList.add('error');
-        } else {
-            ev.currentTarget.classList.remove('error');
-        }
-    });
+    // speeder.timeskip.addEventListener('input', ev => {
+    //     let currentParsedDuration = parseDuration(ev.currentTarget.value);
+    //     if(isNaN(currentParsedDuration)) {
+    //         ev.currentTarget.classList.add('error');
+    //     } else {
+    //         ev.currentTarget.classList.remove('error');
+    //     }
+    // });
 
     function updateSpeederFunctionList() {
         let functionList = [];
