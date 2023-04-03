@@ -60,7 +60,7 @@ class Speeder {
                     startDate = date.call(win.Date);
         
                     prevPerfNow += input.timeskip;
-                    realPerfNow = performance.call(win.performance);
+                    startPerfNow = performance.call(win.performance);
                     continue;
                 }
 
