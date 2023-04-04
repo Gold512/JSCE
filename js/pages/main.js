@@ -1,5 +1,9 @@
 function mainPageInit() {
     let speed = new Speeder(parent);
+    
+    // allow global access to speeder module as only 1 speeder module instance can be active at a time
+    window.speederModule = speed;
+
     let rng = new RNG(parent);
     window.rng = rng;
 
@@ -148,20 +152,20 @@ function mainPageInit() {
         return duration;
     }
 
-    // speeder.timeskipBtn.addEventListener('click', () => {
-    //     const duration = parseDuration(speeder.timeskip.value);
-    //     if(isNaN(duration)) alert(`Invalid duration '${speeder.timeskip.value}'`);
-    //     speed.timeskip(duration);
-    // })
+    speeder.timeskipBtn.addEventListener('click', () => {
+        const duration = parseDuration(speeder.timeskip.value);
+        if(isNaN(duration)) alert(`Invalid duration '${speeder.timeskip.value}'`);
+        speed.timeskip(duration);
+    })
 
-    // speeder.timeskip.addEventListener('input', ev => {
-    //     let currentParsedDuration = parseDuration(ev.currentTarget.value);
-    //     if(isNaN(currentParsedDuration)) {
-    //         ev.currentTarget.classList.add('error');
-    //     } else {
-    //         ev.currentTarget.classList.remove('error');
-    //     }
-    // });
+    speeder.timeskip.addEventListener('input', ev => {
+        let currentParsedDuration = parseDuration(ev.currentTarget.value);
+        if(isNaN(currentParsedDuration)) {
+            ev.currentTarget.classList.add('error');
+        } else {
+            ev.currentTarget.classList.remove('error');
+        }
+    });
 
     function updateSpeederFunctionList() {
         let functionList = [];
@@ -191,6 +195,13 @@ function mainPageInit() {
 
     rngel.input.addEventListener('input', e => {
         rng.set(parserngData(e.currentTarget), randomCall)
+    });
+
+    document.getElementById('run-module').addEventListener('click', async ev => {
+        const moduleData = await getParsedFile();
+        if(moduleData === null) return;
+
+        runModule(moduleData.name, moduleData.text);
     });
 
     // floating btn 
@@ -345,7 +356,7 @@ function* IDGenerator() {
 
 function createAutoclicker() {
     let autoclicker_list = document.getElementById('autoclick-container');
-    let autoclicker = new JSBot(window.parent, 'Click', 100);
+    let autoclicker = new JSBot(window.parent, 'click', 100);
     let template = document.getElementById('autoclicker-template');
     let container = template.content.cloneNode(true).children[0];
     autoclicker_list.appendChild(container);

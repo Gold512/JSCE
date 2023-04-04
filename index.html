@@ -19,6 +19,7 @@
         <script src="./js/debugger.js"></script>
         <script src="./js/jsbot.js"></script>
         <script src="./js/patch.js"></script>
+        <script src="./js/module.js"></script>
         <script src="./js/pages/main.js"></script>
         <script src="./js/pages/search.js"></script>
         <script src="./js/gui.js"></script>
@@ -120,6 +121,19 @@
                             <div class="field"><input class='speeder-function-list' checked type="checkbox" data-functionlist="Date.now,performance.now,requestAnimationFrame"> Timestamp return</div>
                         </div>
                     </div>
+                    
+                    <div class="foldable" id="type-select-cont">
+                        <button onclick="this.classList.toggle('show')">Time Skip</button>
+                        <div>
+                            <input id="timeskip-duration" class="mono" style="margin-right:.3em" type="text" autocomplete="off" placeholder="1s250ms">
+                            <button id="timeskip-btn">Skip</button>
+
+                            <!-- <div class="field">
+                                Hotkey
+                                <input type="text" id="timeskip-hotkey">
+                            </div> -->
+                        </div>
+                    </div>
 
                 </div>
 
@@ -148,6 +162,16 @@
                         <div id="random-override-disp">
                         </div>
                     </div>
+                </div>
+
+                <div class="box">
+                    <div class="box-header">
+                        Module
+                    </div>
+
+                    <button id="run-module">Run</button>
+                    
+                    <div id="module-container"></div>
                 </div>
 
                 <div class="box" style="margin-bottom: 8em;">

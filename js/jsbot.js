@@ -5,10 +5,17 @@ class JSBot {
         this.active = false;
         this.interval = interval;
         
+        if(typeof key === 'string') {
+            key = {
+                code: key
+            }
+        }
+
+        this.key = key;
+
         // Clicking data 
         this.targets = [];
         this.actions = []; // List of actions to perform 
-
     }
 
     /**
@@ -127,6 +134,19 @@ class JSBot {
         return promise;
     }
 
+    /**
+     * Trigger single click event
+     * @param {[number, number]} postion The position of the element that was clicked
+     * @param {number|('main'|'middle'|'secondary')} button which mouse button was pressed (see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button)
+     */
+    click(postion = [0, 0], button = 0) {
+        this._click(this.target, {
+            x: postion[0],
+            y: postion[1],
+            button: button
+        });
+    }
+
     start() {
         if(!this.target) throw new Error('no target element set')
         if(this.active) return;
@@ -137,6 +157,14 @@ class JSBot {
     stop() {
         this.active = false;
         clearTimeout(this.id);
+    }
+
+    toggle() {
+        if(this.active) {
+            this.stop();
+        } else {
+            this.start();
+        }
     }
 
     _startInterval(key, interval) {
@@ -170,14 +198,14 @@ class JSBot {
                     get: () => element
                 },
                 'clientX': {
-                    get: () => key.x
+                    get: () => key.x ?? 0
                 },
                 'clientY': {
-                    get: () => key.y
+                    get: () => key.y ?? 0
                 },
 
                 'button': {
-                    get: () => key.button
+                    get: () => key.button ?? 0
                 },
                 'altKey': {
                     get: () => false
