@@ -45,7 +45,7 @@ function runModule(name, script) {
             document: window.parent.document,
 			speeder: window.speederModule,
             JSBot: JSBot,
-            Module: new Module(name),
+            module: new Module(name),
             requestSpeeder() {
                 let response = confirm(`Module '${name}' would like to request Speeder module, turn it on?`);
                 if(response) document.getElementById('speeder-switch').click();
@@ -65,6 +65,21 @@ function runModule(name, script) {
 	}
 }
 
+/**
+ * Represent the hotkey as a string
+ * @param {object} e - object describing the hotkey 
+ * @param {Boolean} e.altKey - whether or not the alt 
+ * @param {Boolean} e.ctrlKey - whether or not the ctrl key is held down 
+ * @param {Boolean} e.metaKey - whether or not the meta key is held down
+ * @param {Boolean} e.shiftKey - whether or not the shift key is held down 
+ * @param {Boolean} e.code - the key code of the hotkey
+ * @param {Boolean} name - whether to serialize the hotkey to a human-readable string 
+ */
+function serializeHotkey(e, name = false) {
+    if(name) return `${e.altKey ? 'Alt+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.code}`; 
+    return `${e.altKey ? '!' : ''}${e.ctrlKey ? '^' : ''}${e.metaKey ? '$' : ''}${e.shiftKey ? '+' : ''}${e.code}`;
+}
+
 const executedModules = {}
 
 // allow construction of basic UI for the module 
@@ -73,7 +88,6 @@ class Module {
         this.name = name;
         executedModules[this.name] = true;
 
-        this.bindingElement = 'auto';
         this.hotkeys = {};
 
         this.initialized = false;
@@ -86,22 +100,52 @@ class Module {
     bindFunction(name, fn) {
         if(!this.initialized) this._createHotkeyElements();
 
-        let hotkeyInput = document.createElement('input');
+        let hotkeyContainer = document.createElement('div');
 
-        
+        let hotkeyLabel = document.createElement('span');
+        hotkeyLabel.innerText = name;
+        hotkeyContainer.appendChild(hotkeyLabel);
+
+        let hotkeyInput = document.createElement('input');
+        hotkeyInput.style.width = '15em';
+
+        let lastHotkey;
+
+        hotkeyInput.addEventListener('keydown', ev => {
+            let hotkeyStr = serializeHotkey(ev);
+            ev.currentTarget.value = serializeHotkey(ev, true);
+            if(lastHotkey) {
+                delete this.hotkeys[lastHotkey];
+            }
+
+            lastHotkey = hotkeyStr;
+            this.hotkeys[hotkeyStr] = fn;
+        });
+
+        hotkeyContainer.appendChild(hotkeyInput);
+
+        this.moduleHotkeys.appendChild(hotkeyContainer);
     }
 
-    bindHotkeysToElement() {
+    /**
+     * 
+     * @param {string} [bindingElement]
+     */
+    bindHotkeysToElement(bindingElement = 'auto') {
         let targetElement;
-        if(this.bindingElement === 'auto') {
+        if(bindingElement === 'auto') {
             targetElement = this._getTargetElement();
-        } else if(this.bindingElement) {
+        } else if(typeof bindingElement === 'string') {
             targetElement = window.parent.document.querySelector(this.bindingElement);
         }
         
-        targetElement.addEventListener('keydown', () => {
-            
-        })
+        const hotkeys = this.hotkeys;
+        targetElement.addEventListener('keydown', ev => {
+            const hotkeyStr = serializeHotkey(ev);
+            const fn = hotkeys[hotkeyStr];
+            if(!fn) return;
+            fn();
+        });
     }
 
     _createHotkeyElements() {
