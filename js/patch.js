@@ -150,6 +150,10 @@ class Speeder {
         this.speed = speed;
         this.ctx.next({speed})
     }
+    
+    getSpeed() {
+        return this.speed ?? 1;
+    }
 
     /**
      * set functions to override

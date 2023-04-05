@@ -40,7 +40,7 @@ function runModule(name, script) {
 	try {
 		let fn = eval(`(function(script){${script}})`);
 
-		const scriptBuiltIn = Object.freeze({
+		const scriptBuiltIn = {
             window: window.parent,
             document: window.parent.document,
 			speeder: window.speederModule,
@@ -57,7 +57,7 @@ function runModule(name, script) {
                     setTimeout(resolve, ms);
                 })
             }
-		});
+		}
 
 		fn(scriptBuiltIn);
 	} catch (e) {

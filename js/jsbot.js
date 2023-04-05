@@ -23,7 +23,7 @@ class JSBot {
      * @param {HTMLElement|String|Function} element a reference to the element, a string containing a css selector to get the element or a function that returns the element 
      */
     setElement(element) {
-        if(element instanceof HTMLElement) {
+        if(element instanceof this.window.HTMLElement) {
             this.target = element;
         } else if(element instanceof Function) {
             Object.defineProperty(this, 'target', {
@@ -40,7 +40,7 @@ class JSBot {
                 }
             });
         } else {
-            throw new Error('invalid element')
+            throw new Error('invalid element ' + element)
         }
         
     }
