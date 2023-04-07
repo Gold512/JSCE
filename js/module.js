@@ -290,8 +290,8 @@ class Module {
     // helper functions 
 
     requestSpeeder() {
-        if(this.speeder.enabled) return;
-            
+        if(this.speeder.enabled) return true;
+
         let response = confirm(`Module '${this.name}' would like to request Speeder module, turn it on?`);
         if(response) document.getElementById('speeder-switch').click();
 
