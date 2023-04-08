@@ -92,7 +92,7 @@ class Module {
     /**
      * Expose function to allow user to bind a hotkey to bind
      * @param {string} name
-     * @param {function} fn the function to bind
+     * @param {function|Object.<keyof HTMLElementEventMap>} fn the function(s) to bind
      * @param {string[]} params the parameters of the function
      */
     bindFunction(name, fn, params = []) {
@@ -154,7 +154,17 @@ class Module {
             if(lastHotkey) delete this.hotkeys[lastHotkey];
 
             lastHotkey = hotkeyStr;
-            this.hotkeys[hotkeyStr] = [fn, paramInputs];
+
+            this.hotkeys[hotkeyStr] = {params: paramInputs};
+
+            if(typeof fn === 'function') {
+                this.hotkeys[hotkeyStr].keydown = fn;
+            } else {
+                for(let i in fn) {
+                    this.hotkeys[hotkeyStr][i] = fn[i];
+                }
+            }
+            
         }, true);
 
         hotkeyContainer.appendChild(hotkeyInput);
@@ -216,12 +226,10 @@ class Module {
         }
         
         const hotkeys = this.hotkeys;
-        
-        function onKeydown(ev) {
-            const hotkeyStr = serializeHotkey(ev);
-            if(!hotkeys.hasOwnProperty(hotkeyStr)) return;
-            const fn = hotkeys[hotkeyStr][0];
-            const params = hotkeys[hotkeyStr][1];
+
+        function genericBinding(eventName, hotkeyStr) {
+            const fn = hotkeys[hotkeyStr][eventName];
+            const params = hotkeys[hotkeyStr].params;
 
             if(!fn) return;
             
@@ -242,10 +250,26 @@ class Module {
 
             fn(...paramValues);
         }
+        
+        function onKeydown(ev) {
+            const hotkeyStr = serializeHotkey(ev);
+            if(!hotkeys.hasOwnProperty(hotkeyStr)) return;
+            
+            if(hotkeys[hotkeyStr].hasOwnProperty('keyup') && ev.repeat) return;
+            genericBinding('keydown', hotkeyStr);
+        }
+
+        function onKeyup(ev) {
+            const hotkeyStr = serializeHotkey(ev);
+            if(!hotkeys.hasOwnProperty(hotkeyStr)) return;
+
+            genericBinding('keyup', hotkeyStr);
+        }
 
         targetElement.addEventListener('keydown', onKeydown);
+        targetElement.addEventListener('keyup', onKeyup);
 
-        this._changeStore.binding = [targetElement, onKeydown];
+        this._changeStore.binding = [targetElement, onKeydown, onKeyup];
     }
 
     _createHotkeyElements() {
@@ -280,6 +304,7 @@ class Module {
         if(this._changeStore.binding) {
             const binding = this._changeStore.binding;
             binding[0].removeEventListener('keydown', binding[1]);
+            binding[0].removeEventListener('keyup', binding[2]);
         }
 
         if(this._changeStore.moduleUI) {
