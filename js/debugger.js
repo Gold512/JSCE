@@ -420,7 +420,7 @@ class IndexedObj {
             return res;
         }
 
-        // deeper, but slower search
+        // deeper, but slower search (finds hidden properties)
         function deepSearchFn(variable, path, depth) {
             let k = Object.getOwnPropertyNames(variable), res = [];
 
@@ -449,7 +449,7 @@ class IndexedObj {
         path = this._splitPath(path, '.');
         let variable = this.obj;
         for(let i = 0; i < path.length-1; i++) {
-            if(typeof variable[path[i]] != 'object') return new Error("variable at path'" + path.slice(0, i).join('.') + "' is not object'")
+            if(typeof variable[path[i]] != 'object') return new Error("variable at path '" + path.slice(0, i).join('.') + "' is not object'")
             variable = variable[path[i]];
         }
         return {parent: variable, name: path[path.length-1]};

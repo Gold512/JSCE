@@ -16,6 +16,9 @@ class JSBot {
         // Clicking data 
         this.targets = [];
         this.actions = []; // List of actions to perform 
+
+        this.bubbles = null;
+        this.repeats = null;
     }
 
     /**
@@ -283,7 +286,7 @@ class JSBot {
         let eventTypes = ['keydown', 'keyup', 'keypress']
         if(element instanceof HTMLInputElement) eventTypes.push('input');
         for(let i = 0; i < eventTypes.length; i++) {
-            let event = new Event(eventTypes[i], {bubbles: ev.bubbles, repeats: ev.repeats});
+            let event = new Event(eventTypes[i], {bubbles: ev.bubbles, repeat: ev.repeats});
             Object.defineProperties(event, {
                 'keyCode': {
                     get: () => ev.keyCode

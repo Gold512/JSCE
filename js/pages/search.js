@@ -741,6 +741,11 @@ async function getAllDBs(win = window) {
             db.onsuccess = () => {
                 let database = db.result;
                 let objectStores = database.objectStoreNames;
+                if(objectStores.length === 0) {
+                    resolve();
+                    return;
+                }
+
                 let transaction = database.transaction(objectStores, "readonly");
 
                 for(let j = 0; j < objectStores.length; j++) {
