@@ -204,6 +204,16 @@ function mainPageInit() {
         runModule(moduleData.name, moduleData.text);
     });
 
+    document.getElementById('run-module-text').addEventListener('click', async ev => {
+        const moduleData = {
+            name: prompt('Module Name', 'Module_' + Math.round(Math.random() * 1000000).toString(36)),
+            text: prompt('Module Code')
+        }
+        if(moduleData === null) return;
+
+        runModule(moduleData.name, moduleData.text);
+    });
+
     // floating btn 
     let floating_btn_init = false;
     document.getElementById('floating-btn-switch').addEventListener('input', e => {

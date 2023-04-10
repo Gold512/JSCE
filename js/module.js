@@ -41,8 +41,12 @@ function runModule(name, script) {
 
 	try {
 		let fn = eval(`(function(script){${prerun};${script}})`);
+        const scriptObj = new Module(name, window.parent)
+		fn(scriptObj);
+        
+        // auto bind hotkeys if unbinded 
+        if(!scriptObj.binded) scriptObj.bindHotkeysToElement();
 
-		fn(new Module(name, window.parent));
 	} catch (e) {
 		alert(e);
 	}
@@ -87,6 +91,7 @@ class Module {
 		this.speeder = window.speederModule;
         this.JSBot = JSBot;
 
+        this.binded = false;
     }
 
     /**
@@ -216,6 +221,8 @@ class Module {
      * @param {('document'|'auto')|string} [bindingElement] - 'document', 'auto' or a query selector string
      */
     bindHotkeysToElement(bindingElement = 'document') {
+        if(this.binded) throw new Error('Cannot bind hotkeys twice');
+
         let targetElement;
         if(bindingElement === 'document') {
             targetElement = this.document;
@@ -270,6 +277,7 @@ class Module {
         targetElement.addEventListener('keyup', onKeyup);
 
         this._changeStore.binding = [targetElement, onKeydown, onKeyup];
+        this.binded = true;
     }
 
     _createHotkeyElements() {
