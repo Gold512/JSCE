@@ -5,6 +5,8 @@ a cheat engine like program written in javascript for web games
 - [Speed manipulation](#speed-manipulation)
 - [RNG manipulation](#rng-manipulation)
 - [Variable Search](#variable-searching)
+- [Macros](#macros)
+- [Modules](./modules.md)
 
 ### Speed manipulation
 
@@ -15,6 +17,23 @@ Applies changes to the functions below
 - `setTimeout`: Executes more quickly 
 - `setInterval`: Executes more quickly 
 - `requestAnimationFrame`: Passes in a fake timestamp which is furthur in the future then the actual value
+
+#### timeskip
+
+changes the timestamp returned by `performance.now` and `Date.now`. Will not work in games that limit the time between frames.
+The input field uses a duration syntax as follows:
+
+> <number><unit>...
+
+where `unit` is one of the following
+
+- `h` - hour
+- `m` - minute
+- `s` - second
+- `ms` - millisecond
+
+An unlimited amount of number - unit pairs may be used in series. Example: `1h20m30s`  
+The list of pairs are unordered as such `1h30s` is the same as `30s1h`
 
 ### RNG manipulation
 
@@ -57,6 +76,16 @@ Decrease | `/\<` | Check if value has decreased when compared to previous search
 `Shift+Click` to select range of items  
 `Alt+Click` to select and deselect range of items   
 `Alt+Shift+Click` to select and deselect multiple ranges of items 
+
+### Macros 
+
+Use javascript Event interface to automate simple tasks 
+
+Supported events 
+
+- Press keyboard key
+- Click element at point 
+
 
 ## Stack tracing
 
