@@ -53,7 +53,7 @@ script.bindFunction('say hi', name => console.log(name), ['string']);
 // add a label to the input
 script.bindFunction('say hi', name => console.log(name), ['name:string']);
 
-// add multiple parameters
+// add multiple inputs
 script.bindFunction('say hi', (firstName, lastName) => {
     console.log(firstName + ' ' + lastName)
 }, ['first:string', 'last:string']);
