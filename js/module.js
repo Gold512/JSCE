@@ -204,6 +204,14 @@ class Module {
                 case 'number':
                     input.type = 'number';
                     break;
+
+                case 'boolean':
+                    const span = document.createElement('span');
+                    span.innerText = name;
+                    hotkeyContainer.appendChild(span);
+
+                    input.type = 'checkbox';
+                    break;
                 
                 default: 
                     input.type = 'text';
@@ -250,6 +258,11 @@ class Module {
                     case 'duration':
                         paramValues[i] = parseDuration(element.value);
                         break;
+                    
+                    case 'boolean':
+                        paramValues[i] = element.checked;
+                        break;
+
                     default:
                         paramValues[i] = element.value
                 }
@@ -278,6 +291,23 @@ class Module {
 
         this._changeStore.binding = [targetElement, onKeydown, onKeyup];
         this.binded = true;
+    }
+
+    // helper functions 
+
+    requestSpeeder() {
+        if(this.speeder.enabled) return true;
+
+        let response = confirm(`Module '${this.name}' would like to request Speeder module, turn it on?`);
+        if(response) document.getElementById('speeder-switch').click();
+
+        return response;
+    }
+
+    sleep(ms) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        })
     }
 
     _createHotkeyElements() {
@@ -318,22 +348,5 @@ class Module {
         if(this._changeStore.moduleUI) {
             this._changeStore.moduleUI.remove();
         }
-    }
-
-    // helper functions 
-
-    requestSpeeder() {
-        if(this.speeder.enabled) return true;
-
-        let response = confirm(`Module '${this.name}' would like to request Speeder module, turn it on?`);
-        if(response) document.getElementById('speeder-switch').click();
-
-        return response;
-    }
-
-    sleep(ms) {
-        return new Promise(resolve => {
-            setTimeout(resolve, ms);
-        })
     }
 }

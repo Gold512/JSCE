@@ -90,11 +90,21 @@
         frame.srcdoc = html;
     }
 
+    GM_registerMenuCommand('Load Custom', () => {
+        let html = prompt('Code of custom build')
+        GM_setValue('jsce', html);
+        alert(`${html.length} characters successfully written to storage`)
+    })
+
     async function keydown(e) {
         let el = document.getElementById('jsce-container');
         if(e.getModifierState("Alt") && e.getModifierState("Control") && e.getModifierState("Shift")) {
             if(e.code === 'KeyC') {
-                await onActivationKey();
+                if(!initialised) {
+                    await init();
+                    initialised = true;
+                }
+                window.jsce_toggle()
             }
         }
     }
@@ -126,14 +136,4 @@
         while(performance.now() < end) {};
         startBtn.innerText = 'Freeze';
     });
-
-    async function onActivationKey() {
-        if (!initialised) {
-            await init();
-            initialised = true;
-        }
-        window.jsce_toggle();
-    }
-
-    // GM_registerMenuCommand('Open GUI', onActivationKey, 'o')
 })();
