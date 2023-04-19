@@ -5,7 +5,7 @@ Modules are external, user-created JS programs. An API is provided by JSCE to ma
 ## Context 
 
 The context of the module is an eval run within JSCE's context  
-However, a pre-run script is added which switches the document and window objects to that of the target page
+However, a pre-run script is added which defines the document and window objects to that of the target page
 
 ## script object
 
