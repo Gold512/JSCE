@@ -21,7 +21,9 @@ note that `script` objects are local and are unique to each script
 
 ### Bind Function
 
-> script.bindFunction(name, function [, parameters])
+```
+script.bindFunction(name, function [, parameters])
+```
 
 Creates a user interface containing a label, function and any parameters the function has
 
@@ -62,7 +64,9 @@ script.bindFunction('say hi', (firstName, lastName) => {
 
 ### bindHotkeysToElement
 
-> script.bindHotkeysToElement([bindingElement])
+```
+script.bindHotkeysToElement([bindingElement])
+```
 
 Defines the target element to bind hotkeys defined in `bindFunction` to 
 
@@ -77,7 +81,9 @@ If by the end of the script this function is not called it will be called with t
 
 ### requestSpeeder
 
-> script.requestSpeeder()
+```
+script.requestSpeeder()
+```
 
 Creates a confirmation message that requests the user turn on the speeder module  
 Will not be shown if the speeder module is already on
@@ -88,7 +94,9 @@ Whether the user accepted the confirmation message. Will return true if the spee
 
 ### sleep 
 
-> await script.sleep(ms)
+```
+await script.sleep(ms)
+```
 
 Sleep for `ms` amount of miliseconds in a async function 
 
