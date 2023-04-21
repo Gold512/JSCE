@@ -85,7 +85,7 @@
     }
 
     window.jsce_update = async function() {
-        let html = await getgit('Gold512','JSCE','jsce.min.html');
+        let html = await getgit('Gold512', 'JSCE', 'jsce.min.html');
         GM_setValue('jsce', html);
         frame.srcdoc = html;
     }
