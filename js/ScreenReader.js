@@ -2,6 +2,10 @@
  * @typedef {[number, number]} Vector2D
  */
 
+/**
+ * @typedef {[number, number, number]} Color
+ */
+
 class ScreenReader {
 	constructor(canvas) {
 		this.ctx = canvas.getContext("webgl") ?? canvas.getContext("webgl2");
@@ -9,148 +13,127 @@ class ScreenReader {
 
 	/**
 	 * FInd objects based on pixel color samples
-	 * @param {string} type type of the data
+	 * @param {('range'|'set')} type type of the data
 	 * @param {object.<string, Set<number>>|ColorRange} colorData
-	 * @param {Vector2D[]} excludeList - list of color RGBs to exclude
+	 * @param {Object} options options
+	 * @param {number} options.pixelInterval - integer x and y increment when iterating over pixels 
+	 * 										   iterates in a grid like pattern with a gap of (pixelInterval - 1) between each pixel checked
+	 * @param {Color[]} options.excludeColors - list of color RGBs to exclude
+	 * @param {[Vector2D, Vector2D][]} options.excludeAreas - array of positions from bottom left corner of top left and bottom right corner of rectangle to exclude
+	 * 													      positions should be in percentages of width and height
 	 */
-	findObjects(type, colorData, excludeList) {
+	findObjects(type, colorData, options) {
 		let resolve;
 		let promise = new Promise((res) => {
 			resolve = res;
 		});
-		const width = ctx.drawingBufferWidth;
-		const height = ctx.drawingBufferHeight;
+
+		const width = this.ctx.drawingBufferWidth;
+		const height = this.ctx.drawingBufferHeight;
 		let pixels = new Uint8Array(width * height * PIXEL_BITS);
+		const compareFn = {
+			range: this._findObjectsRangeFilter,
+			set: this._findObjectsSetFilter
+		}[type];
+		const PIXEL_INTERVAL = options.pixelInterval ?? 5;
 
-		switch (type) {
-			case "range":
-				requestAnimationFrame(() => {
-					let results = {};
-					for (let objType in colorData) results[objType] = [];
+		requestAnimationFrame(() => {
+			let results = {};
+			for (let objType in colorData) results[objType] = [];
 
-					ctx.readPixels(
-						0,
-						0,
-						width,
-						height,
-						ctx.RGBA,
-						ctx.UNSIGNED_BYTE,
-						pixels
-					);
-					for (let y = 0; y < height; y += PIXEL_INTERVAL) {
-						for (let x = 0; x < width; x += PIXEL_INTERVAL) {
-							// exlude minimap area
-							if (x > 0.82 * width && y > 0.86 * height) continue;
-							// exclude level bar
-							if (y < 0.1 * height) continue;
-							// exclude crosshair
-							if (
-								x > 0.48 * width &&
-								x < 0.52 * width &&
-								y > 0.72 * height &&
-								y < 0.78 * height
-							)
-								continue;
+			this.ctx.readPixels(
+				0,
+				0,
+				width,
+				height,
+				this.ctx.RGBA,
+				this.ctx.UNSIGNED_BYTE,
+				pixels
+			);
+			for (let y = 0; y < height; y += PIXEL_INTERVAL) {
+				for (let x = 0; x < width; x += PIXEL_INTERVAL) {
 
-							const i = (y * width + x) * PIXEL_BITS;
+					// rectangle exclude 
+					if(options.excludeAreas && options.excludeAreas.length) {
+						let dx = null;
 
-							let excluded = false;
-							for (let j = 0; j < excludeList.length; j++) {
-								const color = excludeList[j];
-								if (
-									pixels[i] === color[0] &&
-									pixels[i + 1] === color[1] &&
-									pixels[i + 2] === color[2]
-								) {
-									excluded = true;
-									break;
-								}
+						for(let i = 0; i < options.excludeAreas.length; i++) {
+							const e = options.excludeAreas[i];
+							if(
+								e[0][0] <= x && e[0][1] <= y && // to the right and above the bottom left point
+								e[1][0] >= x && e[1][1] >= y	// to the left and bottom to the top right point
+							) {
+								// skip the excluded areas while ensuring that remains x a multiple of PIXEL_INTERVAL
+								dx = Math.floor( (e[1][0] - x) / PIXEL_INTERVAL ) * PIXEL_INTERVAL;
+								break;
 							}
-							if (excluded) continue;
+						}
 
-							for (let objType in colorData) {
-								const ranges = colorData[objType];
-
-								if (
-									ranges.min[0] <= pixels[i] &&
-									pixels[i] <= ranges.max[0] &&
-									ranges.min[1] <= pixels[i + 1] &&
-									pixels[i + 1] <= ranges.max[1] &&
-									ranges.min[2] <= pixels[i + 2] &&
-									pixels[i + 2] <= ranges.max[2]
-								) {
-									results[objType].push([x, y]);
-									break;
-								}
-							}
+						if(dx) {
+							x += dx;
+							continue;
 						}
 					}
 
-					resolve(results);
-				});
-				break;
-			case "set":
-				requestAnimationFrame(() => {
-					let results = {};
-					for (let objType in colorData) results[objType] = [];
+					const i = (y * width + x) * PIXEL_BITS;
 
-					ctx.readPixels(
-						0,
-						0,
-						width,
-						height,
-						ctx.RGBA,
-						ctx.UNSIGNED_BYTE,
-						pixels
-					);
-					for (let y = 0; y < height; y += PIXEL_INTERVAL) {
-						for (let x = 0; x < width; x += PIXEL_INTERVAL) {
-							// exlude minimap area
-							if (x > 0.82 * width && y > 0.86 * height) continue;
-							// exclude level bar
-							if (y < 0.1 * height) continue;
-
-							const i = (y * width + x) * PIXEL_BITS;
-
-							let excluded = false;
-							for (let j = 0; j < excludeList.length; j++) {
-								const color = excludeList[j];
-								if (
-									pixels[i] === color[0] &&
-									pixels[i + 1] === color[1] &&
-									pixels[i + 2] === color[2]
-								) {
-									excluded = true;
-									break;
-								}
-							}
-							if (excluded) continue;
-
-							const color =
-								(pixels[i] << 16) | (pixels[i + 1] << 8) | pixels[i + 2];
-							for (let objType in colorData) {
-								if (colorData[objType].has(color))
-									results[objType].push([
-										pixels[i],
-										pixels[i + 1],
-										pixels[i + 2],
-									]);
-							}
+					let excluded = false;
+					for (let j = 0; j < options.excludeColors.length; j++) {
+						const color = options.excludeColors[j];
+						if (
+							pixels[i] === color[0] &&
+							pixels[i + 1] === color[1] &&
+							pixels[i + 2] === color[2]
+						) {
+							excluded = true;
+							break;
 						}
 					}
 
-					resolve(results);
-				});
-		}
+					if (excluded) continue;
+
+					let objTypeFound = compareFn(pixels, colorData);
+					if(objTypeFound) results[objTypeFound].push([x, y]);
+				}
+			}
+
+			resolve(results);
+		});
 
 		return promise;
+	}
+
+	// findObjects compare functions 
+	// returns the object type found
+	_findObjectsSetFilter(pixels, colorData) {
+		const color = (pixels[i] << 16) | (pixels[i + 1] << 8) | pixels[i + 2];
+		for (let objType in colorData) {
+			if (colorData[objType].has(color)) return objType;
+		}
+	}
+
+	_findObjectsRangeFilter(pixels, colorData) {
+		for (let objType in colorData) {
+			const ranges = colorData[objType];
+
+			if (
+				ranges.min[0] <= pixels[i] &&
+				pixels[i] <= ranges.max[0] &&
+				ranges.min[1] <= pixels[i + 1] &&
+				pixels[i + 1] <= ranges.max[1] &&
+				ranges.min[2] <= pixels[i + 2] &&
+				pixels[i + 2] <= ranges.max[2]
+			) {
+				return objType;
+			}
+		}
 	}
 
 	/**
 	 * Creates a grid of size distance pixels and removes all pixels in the same grid cell
 	 * @param {Vector2D[]} points
 	 * @param {number} distance minimum distance between points
-	 * @param {('first'|'mean')} mode method of handling duplicate points in the same cell
+	 * @param {('first'|'mean')} [mode=first] method of handling duplicate points in the same cell
 	 */
 	filterNearByPoints(points, distance, mode = "first") {
 		let table = {};
@@ -190,42 +173,6 @@ class ScreenReader {
 	}
 
 	/**
-	 * @param {HTMLElement} container - the container in which to append the indicating elements
-	 * @param {[number, number]} offset - position of bottom left corner of canvas in px
-	 * @param {[number, number][]} points - list of points to display
-	 * @param {[number, number]} size - size of highlighting box
-	 * @param {string} color - comma seperated rgb string representing color
-	 */
-	displayPoints(container, offset, points, size, color = "200, 20, 20") {
-		for (let i = 0; i < points.length; i++) {
-			const p = points[i];
-			const element = document.createElement("div");
-			element.className = "point-indicator";
-			element.style.zIndex = "99999999";
-			element.style.width = `${size[0]}px`;
-			element.style.height = `${size[1]}px`;
-			element.style.left = `${offset[0] + p[0]}px`;
-			element.style.top = `${offset[1] - p[1]}px`;
-			element.style.border = `2px rgba(${color}, .4) solid`;
-			element.style.position = "fixed";
-			element.style.transform = "translate(-50%)";
-			container.appendChild(element);
-		}
-	}
-
-	/**
-	 * Remove displayed points from displayPoints
-	 */
-	removeDisplayedPoints() {
-		let oldPoints = document.querySelectorAll(".point-indicator");
-		for (let i = 0; i < oldPoints.length; i++) oldPoints[i].remove();
-	}
-
-	getDifference(rgb) {
-		return [rgb[0] - rgb[1], rgb[1] - rgb[2]];
-	}
-
-	/**
 	 *
 	 * @param {Vector2D} origin
 	 * @param {Object.<string, Vector2D[]>} results
@@ -248,5 +195,94 @@ class ScreenReader {
 		}
 
 		return nearestPoint;
+	}
+	
+	/**
+	 * @param {HTMLElement} container - the container in which to append the indicating elements
+	 * @param {[number, number]} offset - position of bottom left corner of canvas in px
+	 * @param {[number, number][]} points - list of points to display
+	 * @param {[number, number]} size - size of highlighting box
+	 * @param {string} [color=200, 20, 20] - comma seperated rgb string representing color
+	 */
+	static displayPoints(container, offset, points, size, color = "200, 20, 20") {
+		for (let i = 0; i < points.length; i++) {
+			const p = points[i];
+			const element = document.createElement("div");
+			element.className = "point-indicator";
+			element.style.zIndex = "99999999";
+			element.style.width = `${size[0]}px`;
+			element.style.height = `${size[1]}px`;
+			element.style.left = `${offset[0] + p[0]}px`;
+			element.style.top = `${offset[1] - p[1]}px`;
+			element.style.border = `2px rgba(${color}, .4) solid`;
+			element.style.position = "fixed";
+			element.style.transform = "translate(-50%)";
+			container.appendChild(element);
+		}
+	}
+
+	/**
+	 * Remove displayed points from displayPoints
+	 */
+	static removeDisplayedPoints() {
+		let oldPoints = document.querySelectorAll(".point-indicator");
+		for (let i = 0; i < oldPoints.length; i++) oldPoints[i].remove();
+	}
+
+	/**
+	 * @typedef {Object} ColorAnalysis
+	 * @property {object} range
+	 * @property {Color} range.min
+	 * @property {Color} range.max
+	 * @property {[number, number]} difference - [red - green, green - blue]
+	 */
+
+	/**
+	 * 
+	 * @param {Color[]} colorList 
+	 * @returns {ColorAnalysis}
+	 */
+	static analyseColorList(colorList) {
+		// RGB range
+		const red = [];
+		const green = [];
+		const blue = [];
+		let difference = [];
+		for(let i = 0; i < colorList.length; i++) {
+			const rgbArr = this.RGBIntToArray(colorList[i])
+			red[i] = rgbArr[0];
+			green[i] = rgbArr[1];
+			blue[i] = rgbArr[2];
+
+			difference[i] = this.getDifference(rgbArr);
+		}
+
+		return {
+			range: {
+				min: [
+					Math.min(...red),
+					Math.min(...green),
+					Math.min(...blue)
+				],
+				max: [
+					Math.max(...red),
+					Math.max(...green),
+					Math.max(...blue)
+				]
+			},
+			
+			difference
+		}
+	}
+
+	static getDifference(rgb) {
+		return [rgb[0] - rgb[1], rgb[1] - rgb[2]];
+	}
+	
+	static RGBIntToArray(int) {
+		const red = int >> 16;
+		const green = (int - (red << 16)) >> 8;
+		const blue = int - (red << 16) - (green << 8);
+		return [red, green, blue];
 	}
 }
