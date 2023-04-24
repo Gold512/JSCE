@@ -15,6 +15,7 @@ class IndexedObj {
         this.search = [];
         this._update = () => { return this.obj; };
         this.path = path;
+        this.patches = {};
     }
 
     async set(path, value) {
@@ -88,15 +89,15 @@ class IndexedObj {
     }
     
     /**
-     * Attach observer to an object, overwriting any previous observers 
+     * Apply patches to the object descriptor such as read observers, write observers and freezing the variable 
      * Note: not compatible with this.update function currently
      * Note 2: use with caution, may cause issues with pre-existing references to the object 
      * Note 3: Apply observers recursivly to the ROOT elements to prevent issues with references (only objects can be referenced)
-     * @param {String[]} observers list of observers to add ('read', 'write')
+     * @param {('read'|'write'|'freeze')[]} patches list of patches to add ('read', 'write')
      * @param {String} path 
      * @param {Function} callback 
      */
-    addObserver(path, observers, callback) {
+    patchDescriptor(path, patches, callback) {
         let o = this._getRef(path);
         let v = o.parent[o.name];
 
@@ -108,15 +109,18 @@ class IndexedObj {
             configurable: true
         }
 
-        if(typeof observers == 'string') {
-            if(observers == '*') {
-                observers = ['read', 'write'];
-            } else {
-                observers = [observers];
-            }
+        if(typeof patches == 'string') {
+            patches = [patches];
         }
 
-        if(observers.includes('read')) {
+        if(this.patches.hasOwnProperty(path)) {
+            // re-add existing patches
+            patches.push(...Array.from(this.patches[path]));
+        } else {
+            this.patches[path] = new Set();
+        }
+
+        if(patches.includes('read')) {
             object.get = function() {
                 try { throw new Error('') } catch (e) {
                     callback({
@@ -130,7 +134,7 @@ class IndexedObj {
             }
         }
 
-        if(observers.includes('write')) {
+        if(patches.includes('write')) {
             object.set = function(value) {
                 try { throw new Error('') } catch (e) {
                     callback({
@@ -162,7 +166,26 @@ class IndexedObj {
         //    }
         //}
 
+        // register the patch 
+        for(let i = 0; i < patches.length; i++) this.patches[path].add(patches[i]);
+
         Object.defineProperty(o.parent, o.name, object)
+    }
+
+    /**
+     * Remove all patches from property descriptor of path and removes the patch from the registry 
+     * @param {string} path 
+     */
+    unPatchDescriptor(path) {
+        let o = this._getRef(path);
+        Object.defineProperty(o.parent, o.name, {
+            value: o.parent[o.name],
+
+            enumerable: true,
+            writable: true
+        });
+
+        if(this.patches.hasOwnProperty(path)) delete this.patches[path]
     }
 
     /**

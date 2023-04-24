@@ -13,7 +13,10 @@ class ScreenReader {
 
 	/**
 	 * FInd objects based on pixel color samples
-	 * @param {('range'|'set')} type type of the data
+	 * @param {('range'|'set'|'difference')} type type of the data
+	 * 												- range: range of rgb values
+	 *   										    - set: set of rgb values as their hex values as numbers 
+	 * 											    - difference: set of hex values as numbers with the first 2 bits being (red - green) and the next 2 being (green - blue)
 	 * @param {object.<string, Set<number>>|ColorRange} colorData
 	 * @param {Object} options options
 	 * @param {number} options.pixelInterval - integer x and y increment when iterating over pixels 
@@ -33,7 +36,8 @@ class ScreenReader {
 		let pixels = new Uint8Array(width * height * PIXEL_BITS);
 		const compareFn = {
 			range: this._findObjectsRangeFilter,
-			set: this._findObjectsSetFilter
+			set: this._findObjectsSetFilter,
+			difference: this._findObjectsDifferenceFilter
 		}[type];
 		const PIXEL_INTERVAL = options.pixelInterval ?? 5;
 
@@ -92,7 +96,7 @@ class ScreenReader {
 
 					if (excluded) continue;
 
-					let objTypeFound = compareFn(pixels, colorData);
+					let objTypeFound = compareFn(pixels, i, colorData);
 					if(objTypeFound) results[objTypeFound].push([x, y]);
 				}
 			}
@@ -105,14 +109,14 @@ class ScreenReader {
 
 	// findObjects compare functions 
 	// returns the object type found
-	_findObjectsSetFilter(pixels, colorData) {
+	_findObjectsSetFilter(pixels, i, colorData) {
 		const color = (pixels[i] << 16) | (pixels[i + 1] << 8) | pixels[i + 2];
 		for (let objType in colorData) {
 			if (colorData[objType].has(color)) return objType;
 		}
 	}
 
-	_findObjectsRangeFilter(pixels, colorData) {
+	_findObjectsRangeFilter(pixels, i, colorData) {
 		for (let objType in colorData) {
 			const ranges = colorData[objType];
 
@@ -126,6 +130,16 @@ class ScreenReader {
 			) {
 				return objType;
 			}
+		}
+	}
+
+	_findObjectsDifferenceFilter(pixels, i, colorData) {
+		const redGreenDiff = pixels[i] - pixels[i + 1];
+		const greenBlueDiff = pixels[i + 1] - pixels[i + 2];
+		const colorDiff = (redGreenDiff << 8) | greenBlueDiff;
+		
+		for(let objType in colorData) {
+			if(colorData[objType].has(colorDiff)) return objType; 
 		}
 	}
 
@@ -196,7 +210,7 @@ class ScreenReader {
 
 		return nearestPoint;
 	}
-	
+
 	/**
 	 * @param {HTMLElement} container - the container in which to append the indicating elements
 	 * @param {[number, number]} offset - position of bottom left corner of canvas in px

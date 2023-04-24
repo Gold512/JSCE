@@ -90,6 +90,7 @@ class Module {
         this.document = ctx.document;
 		this.speeder = window.speederModule;
         this.JSBot = JSBot;
+        this.ScreenReader = ScreenReader;
 
         this.binded = false;
     }
@@ -308,6 +309,14 @@ class Module {
         return new Promise(resolve => {
             setTimeout(resolve, ms);
         })
+    }
+
+    /**
+     * Log message to JSCE console 
+     * @param {string} msg message to log
+     */
+    log(msg) {
+        logToConsole(msg);
     }
 
     _createHotkeyElements() {

@@ -92,6 +92,66 @@ function searchPageInit() {
             self.innerText = originalText;
         }, 2000, self);
     });
+
+    function logOperationData(data) {
+        switch(data.operation) {
+            case 'read':
+                logToConsole(`${objectIndex.location}:${data.path}\n    READ\n${data.stack}\n`);
+                break
+            case 'write':
+                logToConsole(`${objectIndex.location}:${data.path}\n    WRITE ${data.old} -> ${data.new}\n${data.stack}\n`);
+                break;
+        }
+    }
+
+    document.getElementById('search-res').addEventListener('contextmenu', ev => {
+        if(!ev.target.matches('.search-box')) return;
+        ev.preventDefault();
+
+        createContextMenu(ev.clientX, ev.clientY, {
+            'Watch Read': () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'read', logOperationData);
+            },
+            'Watch Write': () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'write', logOperationData);
+            },
+            'Freeze': () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'freeze', logOperationData);
+            }
+        })
+
+        
+    })
+}
+
+function createContextMenu(x, y, buttons) {
+    function clear() {
+        background.remove();
+        container.remove();
+    }
+
+    let jsce_container = document.getElementById('jsce-container')
+    let container = document.createElement('div');
+    container.className = 'context-menu';
+    container.style.left = x + 'px';
+    container.style.top = y + 'px';
+
+    for(let label in buttons) {
+        const callback = buttons[label];
+
+        let button = document.createElement('button');
+        button.innerText = label;
+        button.addEventListener('click', callback);
+        button.addEventListener('click', clear);
+        container.appendChild(button);
+    }
+
+    let background = document.createElement('div');
+    background.className = 'context-menu-background';
+
+    jsce_container.appendChild(background);
+    jsce_container.appendChild(container);
+
 }
 
 function autoOperation(input) {

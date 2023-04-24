@@ -150,6 +150,15 @@ class JSBot {
         });
     }
 
+    mouseMove(x, y) {
+        const event = new Event("mousemove", {
+            bubbles: true,
+        });
+        event.movementX = x;
+        event.movementY = y;
+        this.target.dispatchEvent(event);
+    }
+
     start() {
         if(!this.target) throw new Error('no target element set')
         if(this.active) return;
