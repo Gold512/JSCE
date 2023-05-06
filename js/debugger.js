@@ -226,13 +226,6 @@ class IndexedObj {
         this.search = res;
     }
 
-    removeObserver(path) {
-        let o = this._getRef(path);
-        let v = o.parent[o.name];
-
-        o.parent[o.name] = v;
-    }
-
     /**
      * set this.update function for things that do not this.update automatically like storage
      * @param {function(): object | function(): Promise<object>} read function to call when db is read, should return the this.updated object 

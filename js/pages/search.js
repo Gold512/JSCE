@@ -103,31 +103,106 @@ function searchPageInit() {
                 break;
         }
     }
+    
+    const bookmarkCont = document.querySelector('#bookmarked-paths');
+    const bookmarkTable = {};
+    function bookmark(path, parent, key, text) {
+        let bookmark = document.createElement('div');
+        bookmark.classList.add('search-box');
+        bookmark.dataset.path = path;
+        bookmark.dataset.parent
 
+        bookmarkTable[path] = [parent, key];
+
+        let label = document.createElement('div');
+        label.innerHTML = formatPath(path);
+        bookmark.appendChild(label);
+
+        let desc = document.createElement('div');
+        desc.innerText = text;
+        desc.style.color = 'rgb(150, 150, 150)';
+        bookmark.appendChild(desc);
+
+        bookmark.addEventListener('contextmenu', ev => {
+            if(!ev.target.matches('.search-box')) return;
+
+            ev.preventDefault();
+            createContextMenu(ev.clientX, ev.clientY, {
+                'Delete': () => {
+                    objectIndex.unPatchDescriptor(path);
+                    ev.target.remove();
+                },
+                
+                'Unpatch': () => {
+                    objectIndex.unPatchDescriptor(path);
+                    editBookmarks(ev);
+                }
+            })
+        })
+
+        bookmarkCont.appendChild(bookmark);
+    }
+function editBookmarks(ev) {
+            let path = ev.target.dataset.path;
+            let existingBookmark = bookmarkCont.querySelector(`[data-path="${path}"]`);
+            if(existingBookmark) {
+                let patches = objectIndex.patches[path] ?? [];
+                patches = Array.from(patches).join(' ');
+                existingBookmark.children[1].innerText = patches;
+                return;
+            }
+
+            let ref = objectIndex._getRef(path);
+            let patches = objectIndex.patches[path] ?? [];
+            patches = Array.from(patches).join(' ');
+            bookmark(path, ref.parent, ref.name, patches);
+        }
     document.getElementById('search-res').addEventListener('contextmenu', ev => {
         if(!ev.target.matches('.search-box')) return;
         ev.preventDefault();
 
-        createContextMenu(ev.clientX, ev.clientY, {
-            'Watch Read': () => {
-                objectIndex.patchDescriptor(ev.target.dataset.path, 'read', logOperationData);
-            },
-            'Watch Write': () => {
-                objectIndex.patchDescriptor(ev.target.dataset.path, 'write', logOperationData);
-            },
-            'Freeze': () => {
-                objectIndex.patchDescriptor(ev.target.dataset.path, 'freeze', logOperationData);
-            }
-        })
+        ev.target.classList.add('selected');
+
+        let contextBtns = {};
+        contextBtns['Set MAX_INT'] = async () => {
+            await objectIndex.set(ev.target.dataset.path, Number.MAX_SAFE_INTEGER);
+            ev.target.children[1].firstElementChild.innerText = Number.MAX_SAFE_INTEGER;
+        }
 
         
+
+        if(objectIndex.location === 'global') {
+            contextBtns['Bookmark'] = () => {
+                editBookmarks(ev);
+            }
+
+            contextBtns['Watch Read'] = () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'read', logOperationData);
+                editBookmarks(ev);
+            }
+
+            contextBtns['Watch Write'] = () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'write', logOperationData);
+                editBookmarks(ev);
+            }
+
+            contextBtns['Freeze'] = () => {
+                objectIndex.patchDescriptor(ev.target.dataset.path, 'freeze', logOperationData);
+                editBookmarks(ev);
+            }
+        }
+
+        createContextMenu(ev.clientX, ev.clientY, contextBtns, () => {
+            ev.target.classList.remove('selected');
+        })
     })
 }
 
-function createContextMenu(x, y, buttons) {
+function createContextMenu(x, y, buttons, callback = null) {
     function clear() {
         background.remove();
         container.remove();
+        if(callback) callback();
     }
 
     let jsce_container = document.getElementById('jsce-container')
@@ -149,9 +224,13 @@ function createContextMenu(x, y, buttons) {
     let background = document.createElement('div');
     background.className = 'context-menu-background';
 
+    background.addEventListener('click', clear);
+
     jsce_container.appendChild(background);
     jsce_container.appendChild(container);
 
+    let bounds = container.getBoundingClientRect();
+    if(bounds.top + bounds.height > window.innerHeight) container.style.transform = 'translateY(-100%)';
 }
 
 function autoOperation(input) {

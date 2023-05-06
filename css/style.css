@@ -184,7 +184,7 @@ body { height: 100vh; }
     background: var(--background);
 }
 
-#type-select-cont {
+#bookmark-accordian {
     margin-bottom: 5px; 
 }
 
