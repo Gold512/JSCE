@@ -188,6 +188,14 @@ body { height: 100vh; }
     margin-bottom: 5px; 
 }
 
+.bookmark-item::before {
+    content: "(" attr(data-location) ") ";
+    color: yellow;
+    display: inline-block;
+    transform: translateY(.15em);
+    margin-right: .5em;
+}
+
 #type-select-cont #type-select {
     padding: 6px 5px;
 }

@@ -133,19 +133,25 @@ class IndexedObj {
                 return v
             }
         }
-
-        if(patches.includes('write')) {
+        
+        let write = patches.includes('write')
+        let freeze = patches.includes('freeze')
+        if(write || freeze) {
             object.set = function(value) {
-                try { throw new Error('') } catch (e) {
-                    callback({
-                        stack:e.stack.split('\n').slice(2).join('\n'),
-                        old: v,
-                        new: value,
-                        operation: 'write',
-                        path: path
-                    });
+                // check write watch
+                if(write) {
+                    try { throw new Error('') } catch (e) {
+                        callback({
+                            stack:e.stack.split('\n').slice(2).join('\n'),
+                            old: v,
+                            new: value,
+                            operation: 'write',
+                            path: path
+                        });
+                    }
                 }
-                v = value;
+                
+                if(!freeze) v = value;
             }
         }
 

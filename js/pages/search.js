@@ -106,11 +106,12 @@ function searchPageInit() {
     
     const bookmarkCont = document.querySelector('#bookmarked-paths');
     const bookmarkTable = {};
-    function bookmark(path, parent, key, text) {
+    function bookmark(path, parent, key, text, location) {
         let bookmark = document.createElement('div');
         bookmark.classList.add('search-box');
+        bookmark.classList.add('bookmark-item');
         bookmark.dataset.path = path;
-        bookmark.dataset.parent
+        bookmark.dataset.location = location;
 
         bookmarkTable[path] = [parent, key];
 
@@ -123,40 +124,66 @@ function searchPageInit() {
         desc.style.color = 'rgb(150, 150, 150)';
         bookmark.appendChild(desc);
 
+
         bookmark.addEventListener('contextmenu', ev => {
-            if(!ev.target.matches('.search-box')) return;
+            // if(!ev.target.matches('.search-box')) return;
 
             ev.preventDefault();
-            createContextMenu(ev.clientX, ev.clientY, {
+            let target = ev.currentTarget;
+
+            let contextBtns = {
                 'Delete': () => {
                     objectIndex.unPatchDescriptor(path);
                     ev.target.remove();
                 },
-                
+
                 'Unpatch': () => {
                     objectIndex.unPatchDescriptor(path);
                     editBookmarks(ev);
                 }
+            }
+
+            if(target.dataset.location === 'global') {
+                contextBtns['Watch Read'] = () => {
+                    objectIndex.patchDescriptor(ev.target.dataset.path, 'read', logOperationData);
+                    editBookmarks(ev, objectIndex.location);
+                }
+    
+                contextBtns['Watch Write'] = () => {
+                    objectIndex.patchDescriptor(ev.target.dataset.path, 'write', logOperationData);
+                    editBookmarks(ev, objectIndex.location);
+                }
+    
+                contextBtns['Freeze'] = () => {
+                    objectIndex.patchDescriptor(ev.target.dataset.path, 'freeze', logOperationData);
+                    editBookmarks(ev, objectIndex.location);
+                }
+            }
+            target.classList.add('selected');
+            createContextMenu(ev.clientX, ev.clientY, contextBtns, () => {
+                target.classList.remove('selected');
             })
         })
 
         bookmarkCont.appendChild(bookmark);
     }
-function editBookmarks(ev) {
-            let path = ev.target.dataset.path;
-            let existingBookmark = bookmarkCont.querySelector(`[data-path="${path}"]`);
-            if(existingBookmark) {
-                let patches = objectIndex.patches[path] ?? [];
-                patches = Array.from(patches).join(' ');
-                existingBookmark.children[1].innerText = patches;
-                return;
-            }
 
-            let ref = objectIndex._getRef(path);
+    function editBookmarks(ev, location) {
+        let path = ev.target.dataset.path;
+        let existingBookmark = bookmarkCont.querySelector(`[data-path="${path}"]`);
+        if(existingBookmark) {
             let patches = objectIndex.patches[path] ?? [];
             patches = Array.from(patches).join(' ');
-            bookmark(path, ref.parent, ref.name, patches);
+            existingBookmark.children[1].innerText = patches;
+            return;
         }
+
+        let ref = objectIndex._getRef(path);
+        let patches = objectIndex.patches[path] ?? [];
+        patches = Array.from(patches).join(' ');
+        bookmark(path, ref.parent, ref.name, patches, location);
+    }
+
     document.getElementById('search-res').addEventListener('contextmenu', ev => {
         if(!ev.target.matches('.search-box')) return;
         ev.preventDefault();
@@ -169,26 +196,24 @@ function editBookmarks(ev) {
             ev.target.children[1].firstElementChild.innerText = Number.MAX_SAFE_INTEGER;
         }
 
-        
-
         if(objectIndex.location === 'global') {
             contextBtns['Bookmark'] = () => {
-                editBookmarks(ev);
+                editBookmarks(ev, objectIndex.location);
             }
 
             contextBtns['Watch Read'] = () => {
                 objectIndex.patchDescriptor(ev.target.dataset.path, 'read', logOperationData);
-                editBookmarks(ev);
+                editBookmarks(ev, objectIndex.location);
             }
 
             contextBtns['Watch Write'] = () => {
                 objectIndex.patchDescriptor(ev.target.dataset.path, 'write', logOperationData);
-                editBookmarks(ev);
+                editBookmarks(ev, objectIndex.location);
             }
 
             contextBtns['Freeze'] = () => {
                 objectIndex.patchDescriptor(ev.target.dataset.path, 'freeze', logOperationData);
-                editBookmarks(ev);
+                editBookmarks(ev, objectIndex.location);
             }
         }
 
