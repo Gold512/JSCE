@@ -64,16 +64,16 @@ function mainPageInit() {
                 div.id = 'stack-'+st;
                 div.dataset.stack = stack;
                 div.innerHTML = `<pre style='margin-bottom:5px;padding-bottom:0;margin-top:3px'>${st}</pre>value: <span class="override-value">${inp}</span>`;
-                
-
                 div.classList.add('stack-override-container')
-
 
                 div.addEventListener('click', function(e) {
                     let stack = e.currentTarget.dataset.stack;
+                    
                     let inp = prompt(`value (current: ${rng.overrides[stack]})`);
                     if(inp === null) return;
-                    
+                    inp = Number(inp);
+                    if(isNaN(inp)) return alert('Invalid value');
+
                     rng.overrides[stack] = inp;
                     e.currentTarget.querySelector('span').innerText = inp;
                 });
