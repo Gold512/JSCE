@@ -2,7 +2,7 @@ declare namespace script {
     type validTypeStrs = 'string'|'number'|'boolean'|'duration'
     type typedLabel = `${string}:${validTypeStrs}`;
     
-    function bindFunction(name: string, fn: function|Object<keyof HTMLElementEventMap>, params: typedLabel[] | Record<string, validTypeStrs>): void
+    function bindFunction(name: string, fn: (() => void)|Record<keyof HTMLElementEventMap, () => void>, params: typedLabel[] | Record<string, validTypeStrs>): void
     
     function bindHotkeysToElement(bindingElement:'document'|'auto'|string = 'document'): void
 
