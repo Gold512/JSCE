@@ -180,8 +180,16 @@ body { height: 100vh; }
 }
 
 .override-value {
-    padding: 3px 0;
+    padding: 1px 5px;
     background: var(--background);
+    border-radius: 12.5%;
+    font-weight: bold;
+}
+
+.stack-override-container:not(:last-child) {
+    border-bottom: 1px dashed #999;
+    padding-bottom: 3px;
+    margin-bottom: 5px;
 }
 
 #bookmark-accordian {

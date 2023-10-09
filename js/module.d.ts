@@ -6,6 +6,12 @@ declare namespace script {
     
     function bindHotkeysToElement(bindingElement:'document'|'auto'|string = 'document'): void
 
+    function createToggleButton(name: string, fn: {
+        click?():void,
+        on?():void,
+        off?():void
+    }): void
+
     function requestSpeeder(): boolean
 
     function sleep(ms: number): Promise<void>

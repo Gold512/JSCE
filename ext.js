@@ -36,6 +36,8 @@
         return data;
     }
 
+    let devMode = GM_getValue('dev', false);
+
     async function init() {
         let html = GM_getValue('jsce', null);
         if(html === null) {
@@ -56,7 +58,12 @@
 
         let iframe = document.createElement('iframe');
 
-        iframe.srcdoc = html;
+        if(devMode) {
+            iframe.src = location.origin + '/index.html';
+        } else {
+            iframe.srcdoc = html;
+        }
+
         iframe.style.border = 'none';
         iframe.style.width = '100%';
         iframe.style.height = '100%';
@@ -94,6 +101,11 @@
         let html = prompt('Code of custom build')
         GM_setValue('jsce', html);
         alert(`${html.length} characters successfully written to storage`)
+    });
+
+    GM_registerMenuCommand(`Dev: ${devMode}`, () => {
+        devMode = !devMode;
+        GM_setValue('dev', devMode);
     })
 
     async function keydown(e) {
