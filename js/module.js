@@ -69,6 +69,22 @@ function serializeHotkey(e, name = false) {
 
 const executedModules = {}
 
+function* iterateParams(params) {
+    if(typeof params !== 'object') throw new Error('invalid param of type ' + ({}).toString.call(params));
+    if(Array.isArray(params)) {
+        for (let i = 0; i < params.length; i++) {
+            const s = params[i].split(':');
+            s.reverse();
+            yield s;
+        }
+        return;
+    }
+
+    for(let i in params) {
+        yield [params[i], i];
+    }
+}
+
 // allow construction of basic UI for the module 
 class Module {
     constructor(name, ctx) {
@@ -177,13 +193,8 @@ class Module {
 
         const paramInputs = [];
 
-        // format: NAME:TYPE or TYPE
-        for(let i = 0; i < params.length; i++) {
-            const s = params[i].split(':');
-            s.reverse();
-            const type = s[0];
-            const name = s[1];
-
+        // format: ['NAME:TYPE' or 'TYPE')[] or Record<string, 'TYPE'>
+        for(const [type, name] of iterateParams(params)) {
             let input = document.createElement('input');
             input.dataset.type = type;
             input.placeholder = name ? `${name}(${type})` : type;

@@ -1,6 +1,8 @@
 declare namespace script {
-    type typedLabel = `${string}:${'string'|'number'|'boolean'|'duration'}`;
-    function bindFunction(name: string, fn: function|Object<keyof HTMLElementEventMap>, params: typedLabel[]): void
+    type validTypeStrs = 'string'|'number'|'boolean'|'duration'
+    type typedLabel = `${string}:${validTypeStrs}`;
+    
+    function bindFunction(name: string, fn: function|Object<keyof HTMLElementEventMap>, params: typedLabel[] | Record<string, validTypeStrs>): void
     
     function bindHotkeysToElement(bindingElement:'document'|'auto'|string = 'document'): void
 
@@ -12,7 +14,7 @@ declare namespace script {
 
     class JSBot {
         constructor(windowCtx: Window, key: string|object, interval: number): void
-        setElement(element: HTMLElement|String|Function): void
+        setElement(element: HTMLElement|String|(() => HTMLElement)): void
         selectElement():Promise<HTMLElement>
         click(postion:[number, number] = [0, 0], button:number|('main'|'middle'|'secondary') = 0):void
         mouseMove(x: number, y: number): void

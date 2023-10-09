@@ -59,8 +59,13 @@ script.bindFunction('say hi', name => console.log(name), ['name:string']);
 script.bindFunction('say hi', (firstName, lastName) => {
     console.log(firstName + ' ' + lastName)
 }, ['first:string', 'last:string']);
+
+// using object format
+// note: this format requires that all properties be named
+script.bindFunction('say hi', (firstName, lastName) => {
+    console.log(firstName + ' ' + lastName)
+}, {first: 'string', last: 'string'});
 ```
-  
 
 ### bindHotkeysToElement
 
