@@ -41,31 +41,40 @@ function mainPageInit() {
         let div = document.createElement('div');
         div.innerHTML = `<pre>generated ${value}\n${stack}</pre>`;
         div.dataset.stack = stack;
+        
         div.addEventListener('click', function(e) {
             let stack = e.currentTarget.dataset.stack;
 
             let inp = prompt(`value (current: ${rng.overrides[stack]})`);
             if(inp === null) return;
-            if(isNaN(Number(inp))) {
+            inp = Number(inp);
+
+            if(isNaN(inp)) {
                 alert('Invalid input');
                 return;
             }
+
             let prevVal = rng.overrides[stack];
             rng.overrides[stack] = Number(inp);
             let cont = document.getElementById('random-override-disp');
-            let st = stack.replaceAll(/\n? +at/g, '@')
+            let st = stack.replaceAll(/\n? +at/g, '@');
+
             if(prevVal === undefined) {
                 let div = document.createElement('div');
                 div.id = 'stack-'+st;
                 div.dataset.stack = stack;
-                div.innerHTML = `stack: <pre style='margin-bottom:0;padding-bottom:0'>${st}</pre><br>value: <span class="override-value">${inp}</span>`;
-                
+                div.innerHTML = `<pre style='margin-bottom:5px;padding-bottom:0;margin-top:3px'>${st}</pre>value: <span class="override-value">${inp}</span>`;
+                div.classList.add('stack-override-container')
+
                 div.addEventListener('click', function(e) {
                     let stack = e.currentTarget.dataset.stack;
+                    
                     let inp = prompt(`value (current: ${rng.overrides[stack]})`);
                     if(inp === null) return;
-                    
-                    rng.overrides[stack] = Number(inp);
+                    inp = Number(inp);
+                    if(isNaN(inp)) return alert('Invalid value');
+
+                    rng.overrides[stack] = inp;
                     e.currentTarget.querySelector('span').innerText = inp;
                 });
 

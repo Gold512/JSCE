@@ -69,6 +69,22 @@ function serializeHotkey(e, name = false) {
 
 const executedModules = {}
 
+function* iterateParams(params) {
+    if(typeof params !== 'object') throw new Error('invalid param of type ' + ({}).toString.call(params));
+    if(Array.isArray(params)) {
+        for (let i = 0; i < params.length; i++) {
+            const s = params[i].split(':');
+            s.reverse();
+            yield s;
+        }
+        return;
+    }
+
+    for(let i in params) {
+        yield [params[i], i];
+    }
+}
+
 // allow construction of basic UI for the module 
 class Module {
     constructor(name, ctx) {
@@ -177,13 +193,8 @@ class Module {
 
         const paramInputs = [];
 
-        // format: NAME:TYPE or TYPE
-        for(let i = 0; i < params.length; i++) {
-            const s = params[i].split(':');
-            s.reverse();
-            const type = s[0];
-            const name = s[1];
-
+        // format: ['NAME:TYPE' or 'TYPE')[] or Record<string, 'TYPE'>
+        for(const [type, name] of iterateParams(params)) {
             let input = document.createElement('input');
             input.dataset.type = type;
             input.placeholder = name ? `${name}(${type})` : type;
@@ -292,6 +303,43 @@ class Module {
 
         this._changeStore.binding = [targetElement, onKeydown, onKeyup];
         this.binded = true;
+    }
+
+    createToggleButton(name, fn) {
+        if(!this.initialized) this._createHotkeyElements();
+
+        if(this.moduleHotkeys.childElementCount > 0) {
+            let horizontal = document.createElement('div');
+            horizontal.className = 'horizontal-divider';
+            this.moduleHotkeys.appendChild(horizontal);
+        }
+
+        let hotkeyContainer = document.createElement('div');
+        hotkeyContainer.className = 'hotkey-container';
+
+        let hotkeyLabel = document.createElement('span');
+        hotkeyLabel.innerText = name;
+        hotkeyContainer.appendChild(hotkeyLabel);
+
+        let btn = document.createElement('button');
+        btn.style.marginLeft = '5px';
+        btn.innerText = 'OFF'
+
+        let state = false;
+        btn.addEventListener('click', () => {
+            state = !state;
+            btn.innerText = state ? 'ON' : 'OFF';
+            if(fn.click) fn.click();
+            
+            if(state) {
+                if(fn.on) fn.on();
+            } else if(fn.off) {
+                fn.off();
+            }
+        });
+        hotkeyContainer.appendChild(btn);
+
+        this.moduleHotkeys.appendChild(hotkeyContainer);
     }
 
     // helper functions 
