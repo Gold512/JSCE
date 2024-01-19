@@ -51,7 +51,7 @@ function mainPageInit() {
                 return;
             }
             let prevVal = rng.overrides[stack];
-            rng.overrides[stack] = inp;
+            rng.overrides[stack] = Number(inp);
             let cont = document.getElementById('random-override-disp');
             let st = stack.replaceAll(/\n? +at/g, '@')
             if(prevVal === undefined) {
@@ -65,7 +65,7 @@ function mainPageInit() {
                     let inp = prompt(`value (current: ${rng.overrides[stack]})`);
                     if(inp === null) return;
                     
-                    rng.overrides[stack] = inp;
+                    rng.overrides[stack] = Number(inp);
                     e.currentTarget.querySelector('span').innerText = inp;
                 });
 
@@ -378,6 +378,7 @@ function createAutoclicker() {
         interval: container.querySelector('#autoclick-interval'),
         elementSelect: container.querySelector('#autoclick-element-select'),
         bubbles: container.querySelector('#autoclick-key-bubbles'),
+        clicks: container.querySelector('#autoclick-clicks'),
 
         clientX: container.querySelector('#autoclick-client-x'),
         clientY: container.querySelector('#autoclick-client-y'),
@@ -412,10 +413,15 @@ function createAutoclicker() {
                     x: x,
                     y: y,
                     code: 'click', 
-                    button: Number(autoclick.clickButtonDropdown.dataset.value)
+                    button: Number(autoclick.clickButtonDropdown.dataset.value),
+                    clicks: Number(autoclick.clicks.value)
                 }
             } else {
-                autoclicker.key = 'Click';
+                autoclicker.key = {
+                    code: 'click',
+                    button: Number(autoclick.clickButtonDropdown.dataset.value),
+                    clicks: Number(autoclick.clicks.value)
+                };
             }
             
             autoclicker.bubbles = autoclick.bubbles.checked;

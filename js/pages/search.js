@@ -195,6 +195,11 @@ function searchPageInit() {
             await objectIndex.set(ev.target.dataset.path, Number.MAX_SAFE_INTEGER);
             ev.target.children[1].firstElementChild.innerText = Number.MAX_SAFE_INTEGER;
         }
+        contextBtns['Set LARGE_FLOAT'] = async () => {
+            const LARGE_FLOAT = 1e300;
+            await objectIndex.set(ev.target.dataset.path, LARGE_FLOAT);
+            ev.target.children[1].firstElementChild.innerText = LARGE_FLOAT;
+        }
 
         if(objectIndex.location === 'global') {
             contextBtns['Bookmark'] = () => {

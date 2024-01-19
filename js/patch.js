@@ -98,7 +98,7 @@ class Speeder {
                     }
 
                     if(functionList === null || functionList.has('Date.now')) {
-                        win.Date.now = () => {
+                        win.Date.now = function() {
                             let realDate = date.call(win.Date)
                             let elapsed = (realDate - startDate) * speed;
 
@@ -109,7 +109,7 @@ class Speeder {
                     }
 
                     if(functionList === null || functionList.has('performance.now')) {
-                        win.performance.now = () => {
+                        win.performance.now = function() {
                             let realPerfNow = performance.call(win.performance);
                             let elapsed = (realPerfNow - startPerfNow) * speed;
 

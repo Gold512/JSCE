@@ -181,8 +181,10 @@ class JSBot {
 
     _startInterval(key, interval) {
         this.id = setInterval(() => {
-            if(key.code == 'click') {
-                this._click(this.target, key);
+            if(key.code === 'click') {
+                if(!key.hasOwnProperty('clicks')) key.clicks = 1;
+                // multiple clicks per interval for faster clicking
+                for(let i = 0; i < key.clicks; i++) this._click(this.target, key);
             } else {
                 key.bubbles = this.bubbles;
                 key.repeat = this.repeats;
