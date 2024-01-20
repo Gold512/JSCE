@@ -250,6 +250,7 @@ body { height: 100vh; }
     display: inline-block;
 	left: 3px;
     transform: translateY(.125rem);
+    pointer-events: none;
 }
 
 .search-box div:nth-child(2) {
